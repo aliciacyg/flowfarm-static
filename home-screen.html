@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowFarm - Home Screen</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="screen">
+    <!-- Header -->
+    <div class="header">
+      <div class="points">
+        <span class="currency">💰 $500</span>
+        <span class="reputation">🏆 50</span>
+      </div>
+      <div class="date" id="current-date">
+        Day 15 - Spring
+      </div>
+      <div class="header-buttons">
+        <button class="header-btn">📌 Active Requests</button>
+        <button class="header-btn">🎯 Goals</button>
+        <button class="header-btn">⚠️ Warnings</button>
+      </div>
+    </div>
+
+    <!-- Tank Placeholder -->
+    <div class="tank-placeholder">
+      <img src="aquatank.png" alt="Aquaponics Tank" />
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="button-group">
+      <button onclick="openStats()">
+        📊 Stats
+      </button>
+      <button onclick="openInventory()">
+        🎒 Inventory
+      </button>
+      <button onclick="openCommunityBoard()">
+        📋 Community
+      </button>
+      <button>
+        🛒 Shop
+      </button>
+      <button>
+        🏪 Market
+      </button>
+    </div>
+    <br><br><br><br>
+    <!-- +1 day -->
+    <button class="fast-forward" id="fast-forward-btn">
+      ⏩ +1 Day
+    </button>
+  </div>
+
+  <!-- Stats Popup Dialog -->
+  <div id="stats-popup" class="popup">
+    <div class="popup-container">
+      <!-- Header -->
+      <div class="popup-header">
+        <h2>📊 System Information</h2>
+        <button class="close-btn" onclick="closeStats()">X Close</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('water')">💧 Water</button>
+        <button class="tab" onclick="switchTab('plants')">🌱 Plants</button>
+        <button class="tab" onclick="switchTab('fish')">🐟 Fish</button>
+      </div>
+
+      <!-- Water Tab Content -->
+      <div id="water-tab" class="tab-content active">
+        <div class="stat-row">
+          <div class="stat-label">Ammonia (NH₃)</div>
+          <div class="stat-bar">
+            <div class="stat-fill danger" style="width: 75%;"></div>
+          </div>
+          <div class="stat-value">0.7 ppm (Safe: 0-0.5 ppm)</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-label">Nitrite (NO₂⁻)</div>
+          <div class="stat-bar">
+            <div class="stat-fill" style="width: 20%;"></div>
+          </div>
+          <div class="stat-value">0.1 ppm (Safe: 0-0.5 ppm)</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-label">Nitrate (NO₃⁻)</div>
+          <div class="stat-bar">
+            <div class="stat-fill warning" style="width: 60%;"></div>
+          </div>
+          <div class="stat-value">30 ppm (Optimal: 40-80 ppm)</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-label">pH Level</div>
+          <div class="stat-bar">
+            <div class="stat-fill warning" style="width: 55%;"></div>
+          </div>
+          <div class="stat-value">6.5 (Safe: 6.8-7.2)</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-label">Temperature</div>
+          <div class="stat-bar">
+            <div class="stat-fill" style="width: 50%;"></div>
+          </div>
+          <div class="stat-value">65°F (Optimal: 65°F)</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-label">Dissolved Oxygen</div>
+          <div class="stat-bar">
+            <div class="stat-fill" style="width: 85%;"></div>
+          </div>
+          <div class="stat-value">8.5 mg/L (Safe: >5 mg/L)</div>
+        </div>
+      </div>
+
+      <!-- Plants Tab Content -->
+      <div id="plants-tab" class="tab-content">
+        <div class="plant-item">
+          <h4>🥬 Lettuce</h4>
+          <div class="plant-info">
+            <strong>Quantity:</strong> 5 plants<br>
+            <strong>Days until harvest:</strong> 8 days
+          </div>
+        </div>
+
+        <div class="plant-item">
+          <h4>🍅 Tomato</h4>
+          <div class="plant-info">
+            <strong>Quantity:</strong> 3 plants<br>
+            <strong>Days until harvest:</strong> 21 days
+          </div>
+        </div>
+
+        <div class="plant-item">
+          <h4>🌿 Basil</h4>
+          <div class="plant-info">
+            <strong>Quantity:</strong> 2 plants<br>
+            <strong>Days until harvest:</strong> Ready to harvest!
+          </div>
+        </div>
+      </div>
+
+      <!-- Fish Tab Content -->
+      <div id="fish-tab" class="tab-content">
+        <div class="fish-item">
+          <h4>🐟 Goldfish #1</h4>
+          <div class="fish-info">
+            <strong>Species:</strong> Common Goldfish<br>
+            <strong>Size:</strong> 12 cm<br>
+            <strong>Age:</strong> 120 days
+          </div>
+          <div class="health-bar-small">
+            <div class="health-fill" style="width: 95%;"></div>
+          </div>
+          <div class="stat-value">Health: 95% (Healthy)</div>
+        </div>
+
+        <div class="fish-item">
+          <h4>🐟 Goldfish #2</h4>
+          <div class="fish-info">
+            <strong>Species:</strong> Common Goldfish<br>
+            <strong>Size:</strong> 10 cm<br>
+            <strong>Age:</strong> 90 days
+          </div>
+          <div class="health-bar-small">
+            <div class="health-fill" style="width: 85%;"></div>
+          </div>
+          <div class="stat-value">Health: 85% (Healthy)</div>
+        </div>
+
+        <div class="fish-item">
+          <h4>🐠 Tilapia #1</h4>
+          <div class="fish-info">
+            <strong>Species:</strong> Nile Tilapia<br>
+            <strong>Size:</strong> 18 cm<br>
+            <strong>Age:</strong> 150 days
+          </div>
+          <div class="health-bar-small">
+            <div class="health-fill" style="width: 70%; background: #ff9800;"></div>
+          </div>
+          <div class="stat-value">Health: 70% (Stressed - pH too low)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Community Board Popup Dialog -->
+  <div id="community-popup" class="popup">
+    <div class="popup-container">
+      <!-- Header -->
+      <div class="popup-header">
+        <h2>📋 Community Board</h2>
+        <button class="close-btn" onclick="closeCommunityBoard()">✕ Close</button>
+      </div>
+
+      <!-- Community Board Content -->
+      <div class="tab-content active">
+        <p style="margin-bottom: 20px; text-align: center;">
+          Help your neighbors and earn rewards!
+        </p>
+
+        <div class="request-list">
+          <!-- Request 1  -->
+          <div class="request-item" onclick="openRequestDetail(1)">
+            <div class="request-header">
+              <div class="request-title">🎓 Science Class Demo</div>
+              <div class="request-status">AVAILABLE</div>
+            </div>
+            <div class="request-preview">
+              Mr. Chen needs starter fish and plants for his biology class...
+            </div>
+            <div class="request-reward">
+              💰 +10 Reputation | 🎁 Mystery Gift
+            </div>
+          </div>
+          <!-- Additional requests can be added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Detail Popup -->
+  <div id="request-detail-1" class="request-detail">
+    <div class="detail-container">
+      <!-- Detail Header -->
+      <div class="detail-header">
+        <h2>Science Class Demo</h2>
+        <p>
+          Posted by: Mr. Chen
+        </p>
+      </div>
+
+      <!-- Detail Content -->
+      <div class="detail-content">
+        <div class="detail-section">
+          <h3>📝 Request Details</h3>
+          <p>
+            My biology class is studying ecosystems and I want to set up a small aquaponics demonstration in our
+            classroom. Could you donate some starter plants and maybe one small fish? The students would love to see the
+            nitrogen cycle in action!
+          </p>
+        </div>
+
+        <div class="detail-section">
+          <h3>📦 Requirements</h3>
+          <div class="requirements-box">
+            <div>
+              • 3x Lettuce<br>
+              • 1x Fish (any species)
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>🎁 Rewards</h3>
+          <div class="reward-box">
+            <div>
+              +10 Reputation, Aquarium Heater (value $50)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button onclick="closeRequestDetail(1)">← Back</button>
+        <button class="primary">Accept Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Popup -->
+  <div id="inventory-popup" class="popup">
+    <div class="popup-container">
+      <div class="popup-header">
+        <h2>🎒 Inventory</h2>
+        <button class="close-btn" onclick="closeInventory()">✕ Close</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchInventoryTab('consumables')">📦 Supplies</button>
+        <button class="tab" onclick="switchInventoryTab('equipment')">⚙️ Equipment</button>
+        <button class="tab" onclick="switchInventoryTab('harvest')">🌾 Harvest</button>
+      </div>
+
+      <!-- Consumables Tab Content -->
+      <div id="consumables-tab" class="tab-content active">
+        <div class="inventory-item">
+          <div class="item-header">
+            <h4>🫘 Fish Feed</h4>
+            <span class="item-quantity">250g remaining</span>
+          </div>
+          <div class="item-info">Standard pellet feed for goldfish and tilapia</div>
+        </div>
+
+        <div class="inventory-item">
+          <div class="item-header">
+            <h4>🧪 Calcium Carbonate</h4>
+            <span class="item-quantity">500g</span>
+          </div>
+          <div class="item-info">Slowly raises pH over several days</div>
+        </div>
+
+        <div class="inventory-item">
+          <div class="item-header">
+            <h4>🧪 Phosphoric Acid</h4>
+            <span class="item-quantity">100mL</span>
+          </div>
+          <div class="item-info">Lowers pH when levels are too high</div>
+        </div>
+
+        <div class="inventory-item">
+          <div class="item-header">
+            <h4>🧪 Probiotic Supplement</h4>
+            <span class="item-quantity">3 doses</span>
+          </div>
+          <div class="item-info">Helps establish nitrogen cycle and break down waste</div>
+        </div>
+
+        <div class="inventory-item">
+          <div class="item-header">
+            <h4>🐟 Aquarium Salt</h4>
+            <span class="item-quantity">1kg</span>
+          </div>
+          <div class="item-info">Used for treating fish diseases (harmful to plants)</div>
+        </div>
+
+        <div class="inventory-item">
+          <div class="item-header">
+            <h4>🌱 Iron Supplement</h4>
+            <span class="item-quantity">200mL</span>
+          </div>
+          <div class="item-info">Prevents iron deficiency in plants</div>
+        </div>
+      </div>
+
+      <!-- Equipment Tab Content -->
+      <div id="equipment-tab" class="tab-content">
+        <div class="equipment-item functioning">
+          <div class="equipment-header">
+            <h4>💨 Air Pump</h4>
+            <span class="status-badge functioning">✓ Functioning</span>
+          </div>
+          <div class="equipment-info">Provides oxygen to fish and beneficial bacteria</div>
+        </div>
+
+        <div class="equipment-item functioning">
+          <div class="equipment-header">
+            <h4>🔄 Water Pump</h4>
+            <span class="status-badge functioning">✓ Functioning</span>
+          </div>
+          <div class="equipment-info">Circulates water from fish tank to plant beds</div>
+        </div>
+
+        <div class="equipment-item needs-repair">
+          <div class="equipment-header">
+            <h4>🧹 Filter</h4>
+            <span class="status-badge needs-repair">⚠ Needs Cleaning</span>
+          </div>
+          <div class="equipment-info">Removes solid waste particles from water</div>
+        </div>
+
+        <div class="equipment-item functioning">
+          <div class="equipment-header">
+            <h4>💡 Grow Light (LED)</h4>
+            <span class="status-badge functioning">✓ Functioning</span>
+          </div>
+          <div class="equipment-info">Provides light for plant photosynthesis</div>
+        </div>
+
+        <div class="equipment-item functioning">
+          <div class="equipment-header">
+            <h4>📊 Monitoring equipment</h4>
+            <span class="status-badge functioning">✓ Functioning</span>
+          </div>
+          <div class="equipment-info">Digital monitor for water parameters</div>
+        </div>
+      </div>
+
+      <!-- Harvest Tab Content -->
+      <div id="harvest-tab" class="tab-content">
+        <div class="harvest-grid">
+          <div class="harvest-item">
+            <div class="harvest-icon">🥬</div>
+            <div class="harvest-name">Lettuce</div>
+            <div class="harvest-quantity">12</div>
+          </div>
+
+          <div class="harvest-item">
+            <div class="harvest-icon">🍅</div>
+            <div class="harvest-name">Tomato</div>
+            <div class="harvest-quantity">0</div>
+          </div>
+
+          <div class="harvest-item">
+            <div class="harvest-icon">🌿</div>
+            <div class="harvest-name">Basil</div>
+            <div class="harvest-quantity">8</div>
+          </div>
+
+          <div class="harvest-item">
+            <div class="harvest-icon">🐟</div>
+            <div class="harvest-name">Goldfish</div>
+            <div class="harvest-quantity">2</div>
+          </div>
+
+          <div class="harvest-item">
+            <div class="harvest-icon">🐠</div>
+            <div class="harvest-name">Tilapia</div>
+            <div class="harvest-quantity">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crisis Event Popup -->
+  <div id="crisis-popup" class="popup">
+    <div class="popup-container">
+      <div class="popup-header">
+        <h2 id="crisis-title">⚠️ Crisis</h2>
+        <button class="close-btn" onclick="closeCrisis()">✕ Close</button>
+      </div>
+      <div class="popup-content">
+        <p id="crisis-description">Crisis description stub goes here.</p>
+        <div id="crisis-options" class="crisis-options"></div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
