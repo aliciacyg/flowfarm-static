@@ -433,6 +433,11 @@ button.primary {
     font-weight: bold;
 }
 
+button.primary:disabled {
+    background: #696969;
+    border-color: #81c784;
+}
+
 button.primary:hover {
     background: #45a049;
 }

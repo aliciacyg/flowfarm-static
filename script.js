@@ -15,8 +15,37 @@ const crisisOptionsEl = document.getElementById('crisis-options');
 const gillPopup = document.getElementById('gill-popup');
 const gillMessageEl = document.getElementById('gill-message');
 const gillNextButton = document.getElementById('gill-next-btn');
+const communityPopup = document.getElementById('community-popup');
+const communityRequestListEl = document.getElementById('community-request-list');
+const communityRequestEmptyEl = document.getElementById('community-request-empty');
+const requestDetailPopup = document.getElementById('request-detail-popup');
+const requestDetailTitleEl = document.getElementById('request-detail-title');
+const requestDetailPostedByEl = document.getElementById('request-detail-posted-by');
+const requestDetailDescriptionEl = document.getElementById('request-detail-description');
+const requestDetailRequirementsEl = document.getElementById('request-detail-requirements');
+const requestDetailRewardsEl = document.getElementById('request-detail-rewards');
+const requestBackButton = document.getElementById('request-detail-back-btn');
+const requestAcceptButton = document.getElementById('request-accept-btn');
+const requestCompleteButton = document.getElementById('request-complete-btn');
 
 const DEFAULT_STARTING_BALANCE = 20;
+
+const communityRequests = [
+    {
+        id: 'science-class-demo',
+        title: 'Science Class Demo',
+        postedBy: 'Mr. Chen',
+        icon: '🎓',
+        preview: 'Mr. Chen needs starter fish and plants for his biology class...',
+        description: `My biology class is studying ecosystems and I want to set up a small aquaponics demonstration in our classroom. Could you donate some starter plants and maybe one small fish? The students would love to see the nitrogen cycle in action!`,
+        requirements: [
+            '3x Lettuce',
+            '1x Fish (any species)'
+        ],
+        rewards: '+10 Reputation, Aquarium Heater (value $50)',
+        rewardPreview: '💰 +10 Reputation | 🎁 Mystery Gift'
+    }
+];
 
 
 // Game State Object
@@ -222,7 +251,12 @@ const gameState = {
 
     activeEffects: [],
 
-    activeCommunityRequests: []
+    communityRequests: communityRequests.map((request) => ({
+        ...request,
+        requirements: request.requirements ? request.requirements.slice() : []
+    })),
+
+    activeCommunityRequest: null
 };
 
 // Stubs for crisis event system
@@ -257,6 +291,8 @@ const gillMessagesByDay = {
 
 let activeGillMessages = [];
 let activeGillIndex = 0;
+
+let currentRequestContext = null;
 
 
 // Stats popup management
@@ -315,19 +351,214 @@ function switchInventoryTab(tabName) {
 //
 //
 function openCommunityBoard() {
-    document.getElementById('community-popup').classList.add('active');
+    if (!communityPopup) {
+        return;
+    }
+
+    renderCommunityBoard();
+    communityPopup.classList.add('active');
 }
 
 function closeCommunityBoard() {
-    document.getElementById('community-popup').classList.remove('active');
+    if (communityPopup) {
+        communityPopup.classList.remove('active');
+    }
 }
 
-function openRequestDetail(requestId) {
-    document.getElementById('request-detail-' + requestId).classList.add('active');
+function renderCommunityBoard() {
+    if (!communityRequestListEl) {
+        return;
+    }
+
+    communityRequestListEl.innerHTML = '';
+    const availableRequests = gameState.communityRequests;
+
+    if (!availableRequests.length) {
+        if (communityRequestEmptyEl) {
+            communityRequestEmptyEl.style.display = 'block';
+        }
+        return;
+    }
+
+    if (communityRequestEmptyEl) {
+        communityRequestEmptyEl.style.display = 'none';
+    }
+
+    availableRequests.forEach((request) => {
+        const item = document.createElement('div');
+        item.className = 'request-item';
+        item.dataset.requestId = request.id;
+
+        const header = document.createElement('div');
+        header.className = 'request-header';
+
+        const title = document.createElement('div');
+        title.className = 'request-title';
+        const icon = request.icon ? `${request.icon} ` : '';
+        title.textContent = `${icon}${request.title}`;
+
+        const status = document.createElement('div');
+        status.className = 'request-status';
+        status.textContent = 'AVAILABLE';
+
+        header.appendChild(title);
+        header.appendChild(status);
+
+        const preview = document.createElement('div');
+        preview.className = 'request-preview';
+        preview.textContent = request.preview || '';
+
+        const reward = document.createElement('div');
+        reward.className = 'request-reward';
+        reward.textContent = request.rewardPreview || request.rewards || '';
+
+        item.appendChild(header);
+        item.appendChild(preview);
+        item.appendChild(reward);
+
+        item.addEventListener('click', () => {
+            openRequestDetail(request.id, 'board');
+        });
+
+        communityRequestListEl.appendChild(item);
+    });
 }
 
-function closeRequestDetail(requestId) {
-    document.getElementById('request-detail-' + requestId).classList.remove('active');
+function openRequestDetail(requestId, context = 'board') {
+    if (!requestDetailPopup) {
+        return;
+    }
+
+    let requestData = null;
+
+    if (context === 'active') {
+        requestData = gameState.activeCommunityRequest && gameState.activeCommunityRequest.id === requestId
+            ? gameState.activeCommunityRequest
+            : null;
+    } else {
+        requestData = gameState.communityRequests.find((entry) => entry.id === requestId) || null;
+    }
+
+    if (!requestData) {
+        showNoActiveRequestMessage();
+        requestDetailPopup.classList.add('active');
+        currentRequestContext = null;
+        return;
+    }
+
+    currentRequestContext = { requestId, context };
+    populateRequestDetail(requestData, context);
+    requestDetailPopup.classList.add('active');
+}
+
+function populateRequestDetail(request, context) {
+    if (!requestDetailTitleEl || !requestDetailPostedByEl || !requestDetailDescriptionEl || !requestDetailRewardsEl) {
+        return;
+    }
+
+    requestDetailTitleEl.textContent = request.title || 'Community Request';
+    requestDetailPostedByEl.textContent = request.postedBy ? `Posted by: ${request.postedBy}` : '';
+    requestDetailDescriptionEl.textContent = request.description || '';
+
+    if (requestDetailRequirementsEl) {
+        requestDetailRequirementsEl.innerHTML = '';
+        if (Array.isArray(request.requirements) && request.requirements.length > 0) {
+            request.requirements.forEach((requirement) => {
+                const li = document.createElement('li');
+                li.textContent = requirement;
+                requestDetailRequirementsEl.appendChild(li);
+            });
+        }
+    }
+
+    requestDetailRewardsEl.textContent = request.rewards || '';
+
+    if (requestAcceptButton) {
+        if (context === 'board') {
+            const hasActive = Boolean(gameState.activeCommunityRequest);
+            requestAcceptButton.style.display = 'inline-block';
+            requestAcceptButton.disabled = hasActive;
+        } else if (context === 'active') {
+            requestAcceptButton.remove();
+        } else {
+            requestAcceptButton.style.display = 'none';
+        }
+    }
+
+    if (requestCompleteButton) {
+        if (context === 'active') {
+            requestCompleteButton.style.display = 'inline-block';
+            requestCompleteButton.disabled = true;
+        } else {
+            requestCompleteButton.style.display = 'none';
+        }
+    }
+}
+
+function closeRequestDetail() {
+    if (requestDetailPopup) {
+        requestDetailPopup.classList.remove('active');
+    }
+    currentRequestContext = null;
+}
+
+function handleAcceptRequest() {
+    if (!currentRequestContext || currentRequestContext.context !== 'board') {
+        return;
+    }
+
+    if (gameState.activeCommunityRequest) {
+        return;
+    }
+
+    const index = gameState.communityRequests.findIndex((request) => request.id === currentRequestContext.requestId);
+    if (index === -1) {
+        return;
+    }
+
+    const [acceptedRequest] = gameState.communityRequests.splice(index, 1);
+    gameState.activeCommunityRequest = acceptedRequest;
+
+    renderCommunityBoard();
+    openRequestDetail(acceptedRequest.id, 'active');
+}
+
+function openActiveRequest() {
+    if (gameState.activeCommunityRequest) {
+        openRequestDetail(gameState.activeCommunityRequest.id, 'active');
+        return;
+    }
+
+    if (!requestDetailPopup) {
+        return;
+    }
+
+    showNoActiveRequestMessage();
+    currentRequestContext = null;
+    requestDetailPopup.classList.add('active');
+}
+
+function showNoActiveRequestMessage() {
+    if (!requestDetailTitleEl || !requestDetailDescriptionEl || !requestDetailRewardsEl) {
+        return;
+    }
+
+    requestDetailTitleEl.textContent = 'No Active Request';
+    requestDetailPostedByEl.textContent = '';
+    requestDetailDescriptionEl.textContent = 'Visit the community board to accept a new community request.';
+    if (requestDetailRequirementsEl) {
+        requestDetailRequirementsEl.innerHTML = '';
+    }
+
+    requestDetailRewardsEl.textContent = '';
+
+    if (requestAcceptButton) {
+        requestAcceptButton.style.display = 'none';
+    }
+
+    if (requestCompleteButton) {
+        requestCompleteButton.style.display = 'none';
+    }
 }
 // -------------------------------------------------------------------------
 
@@ -826,13 +1057,13 @@ document.getElementById('community-popup').addEventListener('click', function (e
     }
 });
 
-document.querySelectorAll('.request-detail').forEach(detail => {
-    detail.addEventListener('click', function (e) {
-        if (e.target === this) {
-            this.classList.remove('active');
+if (requestDetailPopup) {
+    requestDetailPopup.addEventListener('click', function (e) {
+        if (e.target === requestDetailPopup) {
+            closeRequestDetail();
         }
     });
-});
+}
 
 document.getElementById('inventory-popup').addEventListener('click', function (e) {
     if (e.target === this) {
@@ -870,9 +1101,18 @@ if (crisisOptionsEl) {
     crisisOptionsEl.innerHTML = '';
 }
 
+if (requestBackButton) {
+    requestBackButton.addEventListener('click', closeRequestDetail);
+}
+
+if (requestAcceptButton) {
+    requestAcceptButton.addEventListener('click', handleAcceptRequest);
+}
+
 updateDayDisplay();
 updateBalanceDisplay();
 renderGameState();
+renderCommunityBoard();
 
 // Show Gill's welcome message on day 1
 if (gameState.day === 1) {

@@ -20,7 +20,7 @@
         Day 1
       </div>
       <div class="header-buttons">
-        <button class="header-btn">📌 Active Requests</button>
+        <button class="header-btn" onclick="openActiveRequest()">📌 Active Request</button>
         <button class="header-btn">🎯 Goals</button>
         <button class="header-btn">⚠️ Warnings</button>
       </div>
@@ -104,72 +104,52 @@
           Help your neighbors and earn rewards!
         </p>
 
-        <div class="request-list">
-          <!-- Request 1  -->
-          <div class="request-item" onclick="openRequestDetail(1)">
-            <div class="request-header">
-              <div class="request-title">🎓 Science Class Demo</div>
-              <div class="request-status">AVAILABLE</div>
-            </div>
-            <div class="request-preview">
-              Mr. Chen needs starter fish and plants for his biology class...
-            </div>
-            <div class="request-reward">
-              💰 +10 Reputation | 🎁 Mystery Gift
-            </div>
-          </div>
-          <!-- Additional requests can be added here -->
+        <div class="request-list" id="community-request-list">
+          <!-- List of requests populated through script -->
         </div>
+        <p class="no-requests-message" id="community-request-empty" style="display: none; text-align: center;">
+          No community requests available right now.
+        </p>
       </div>
     </div>
   </div>
 
   <!-- Request Detail Popup -->
-  <div id="request-detail-1" class="request-detail">
-    <div class="detail-container">
+  <div id="request-detail-popup" class="request-detail">
+    <div class="detail-container" id="request-detail-container">
       <!-- Detail Header -->
       <div class="detail-header">
-        <h2>Science Class Demo</h2>
-        <p>
-          Posted by: Mr. Chen
-        </p>
+        <h2 id="request-detail-title"></h2>
+        <p id="request-detail-posted-by"></p>
       </div>
 
       <!-- Detail Content -->
       <div class="detail-content">
         <div class="detail-section">
           <h3>📝 Request Details</h3>
-          <p>
-            My biology class is studying ecosystems and I want to set up a small aquaponics demonstration in our
-            classroom. Could you donate some starter plants and maybe one small fish? The students would love to see the
-            nitrogen cycle in action!
-          </p>
+          <p id="request-detail-description"></p>
         </div>
 
         <div class="detail-section">
           <h3>📦 Requirements</h3>
           <div class="requirements-box">
-            <div>
-              • 3x Lettuce<br>
-              • 1x Fish (any species)
-            </div>
+            <ul id="request-detail-requirements"></ul>
           </div>
         </div>
 
         <div class="detail-section">
           <h3>🎁 Rewards</h3>
           <div class="reward-box">
-            <div>
-              +10 Reputation, Aquarium Heater (value $50)
-            </div>
+            <p id="request-detail-rewards"></p>
           </div>
         </div>
       </div>
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button onclick="closeRequestDetail(1)">← Back</button>
-        <button class="primary">Accept Request</button>
+        <button id="request-detail-back-btn">← Back</button>
+        <button class="primary" id="request-accept-btn">Accept Request</button>
+        <button class="primary" id="request-complete-btn" disabled style="display: none;">Complete Request</button>
       </div>
     </div>
   </div>
