@@ -1,18 +1,28 @@
 const dateDisplay = document.getElementById('current-date');
 const balanceDisplay = document.getElementById('balance-display');
 const balanceAmountEl = document.getElementById('balance-amount');
-const DEFAULT_STARTING_BALANCE = 500;
-let currentDay = 15;
-let currentSeason = 'Spring';
-let currentMoney = DEFAULT_STARTING_BALANCE;
 const waterStatsContainer = document.getElementById('water-stats-container');
 const plantsListEl = document.getElementById('plants-list');
 const fishListEl = document.getElementById('fish-list');
 const consumablesListEl = document.getElementById('consumables-list');
 const equipmentListEl = document.getElementById('equipment-list');
 const harvestListEl = document.getElementById('harvest-list');
+const fastForwardButton = document.getElementById('fast-forward-btn');
+const crisisPopup = document.getElementById('crisis-popup');
+const crisisTitleEl = document.getElementById('crisis-title');
+const crisisDescriptionEl = document.getElementById('crisis-description');
+const crisisOptionsEl = document.getElementById('crisis-options');
+const gillPopup = document.getElementById('gill-popup');
+const gillMessageEl = document.getElementById('gill-message');
+const gillNextButton = document.getElementById('gill-next-btn');
 
+const DEFAULT_STARTING_BALANCE = 20;
+
+
+// Game State Object
 const gameState = {
+    day: 1,
+    balance: DEFAULT_STARTING_BALANCE,
     waterStats: [
         {
             key: 'ammonia',
@@ -208,32 +218,14 @@ const gameState = {
             { key: 'goldfish-harvest', icon: '🐟', name: 'Goldfish', quantity: 2 },
             { key: 'tilapia-harvest', icon: '🐠', name: 'Tilapia', quantity: 0 }
         ]
-    }
+    },
+
+    activeEffects: [],
+
+    activeCommunityRequests: []
 };
 
-if (dateDisplay) {
-    const dateText = dateDisplay.textContent.trim();
-    const match = dateText.match(/Day\s+(\d+)\s*-\s*(.+)/i);
-    if (match) {
-        currentDay = parseInt(match[1], 10);
-        currentSeason = match[2].trim();
-    }
-}
-
-if (balanceDisplay) {
-    const startingBalanceAttr = balanceDisplay.getAttribute('data-starting-balance');
-    const parsedStartingBalance = startingBalanceAttr ? parseInt(startingBalanceAttr, 10) : NaN;
-    if (!Number.isNaN(parsedStartingBalance)) {
-        currentMoney = parsedStartingBalance;
-    }
-}
-
-const fastForwardButton = document.getElementById('fast-forward-btn');
-const crisisPopup = document.getElementById('crisis-popup');
-const crisisTitleEl = document.getElementById('crisis-title');
-const crisisDescriptionEl = document.getElementById('crisis-description');
-const crisisOptionsEl = document.getElementById('crisis-options');
-
+// Stubs for crisis event system
 const defaultCrisisOptions = [
     'Option 1 stub',
     'Option 2 stub',
@@ -253,6 +245,23 @@ const crisisEventsByDay = {
     }
 };
 
+// Gill's daily messages
+const gillMessagesByDay = {
+    1: [
+        `Hey there! I'm Gill. I'm here to guide you through your aquaponics journey.`,
+        `Welcome to FlowFarm! I'll pop up each day with a quick check-in and some tips.`,
+        `Aquaponics is all about teamwork: fish provide nutrients for plants, and plants clean the water for fish.`,
+        `Start by exploring your Stats and Inventory panels. Your system is counting on you!`
+    ]
+};
+
+let activeGillMessages = [];
+let activeGillIndex = 0;
+
+
+// Stats popup management
+//
+//
 function openStats() {
     document.getElementById('stats-popup').classList.add('active');
 }
@@ -274,7 +283,11 @@ function switchTab(tabName) {
     document.getElementById(tabName + '-tab').classList.add('active');
     event.target.classList.add('active');
 }
+// -------------------------------------------------------------------------
 
+// Inventory popup management
+//
+//
 function openInventory() {
     document.getElementById('inventory-popup').classList.add('active');
 }
@@ -296,7 +309,11 @@ function switchInventoryTab(tabName) {
     document.getElementById(tabName + '-tab').classList.add('active');
     event.target.classList.add('active');
 }
+// -------------------------------------------------------------------------
 
+// Community board popup management
+//
+//
 function openCommunityBoard() {
     document.getElementById('community-popup').classList.add('active');
 }
@@ -312,45 +329,133 @@ function openRequestDetail(requestId) {
 function closeRequestDetail(requestId) {
     document.getElementById('request-detail-' + requestId).classList.remove('active');
 }
+// -------------------------------------------------------------------------
 
+// Gill guide popup management
+//
+//
+function openGill(day) {
+    if (!gillPopup || !gillMessageEl) {
+        return;
+    }
+
+    const messageEntry = gillMessagesByDay[day];
+    if (!messageEntry) {
+        return;
+    }
+
+    activeGillMessages = Array.isArray(messageEntry) ? messageEntry.slice() : [messageEntry];
+    activeGillIndex = 0;
+    renderGillMessage();
+    updateGillControls();
+    gillPopup.classList.add('active');
+}
+
+function closeGill() {
+    if (gillPopup) {
+        gillPopup.classList.remove('active');
+    }
+
+    activeGillMessages = [];
+    activeGillIndex = 0;
+    renderGillMessage();
+    updateGillControls();
+}
+
+function renderGillMessage() {
+    if (!gillMessageEl) {
+        return;
+    }
+
+    if (activeGillMessages.length === 0) {
+        gillMessageEl.textContent = '';
+        return;
+    }
+
+    gillMessageEl.textContent = activeGillMessages[activeGillIndex];
+}
+
+function updateGillControls() {
+    if (!gillNextButton) {
+        return;
+    }
+
+    if (activeGillMessages.length === 0) {
+        gillNextButton.textContent = 'Close';
+        return;
+    }
+
+    const hasMore = activeGillIndex < activeGillMessages.length - 1;
+    gillNextButton.textContent = hasMore ? 'Next' : 'Close';
+}
+
+function handleGillNext() {
+    if (activeGillMessages.length === 0) {
+        closeGill();
+        return;
+    }
+
+    const hasMore = activeGillIndex < activeGillMessages.length - 1;
+    if (hasMore) {
+        activeGillIndex += 1;
+        renderGillMessage();
+        updateGillControls();
+        return;
+    }
+
+    closeGill();
+}
+// -------------------------------------------------------------------------
+
+// Game day advancement
+//
+//
 function advanceDay() {
-    currentDay += 1;
+    gameState.day += 1;
     updateDayDisplay();
-    triggerCrisisEvent(currentDay);
+    
+    // Show Gill's message first if available for this day
+    if (gillMessagesByDay[gameState.day]) {
+        openGill(gameState.day);
+    }
+    
+    triggerCrisisEvent(gameState.day);
 }
 
 function updateDayDisplay() {
     if (dateDisplay) {
-        dateDisplay.textContent = `Day ${currentDay} - ${currentSeason}`;
+        dateDisplay.textContent = `Day ${gameState.day}`;
     }
 }
 
+// Balance management
 function updateBalanceDisplay() {
     if (!balanceAmountEl) {
         return;
     }
-
-    balanceAmountEl.textContent = currentMoney.toLocaleString('en-US');
+    balanceAmountEl.textContent = gameState.balance.toLocaleString('en-US');
 }
 
 function setBalance(amount) {
     if (typeof amount !== 'number' || Number.isNaN(amount)) {
-        return currentMoney;
+        return gameState.balance;
     }
-
-    currentMoney = amount;
+    gameState.balance = amount;
     updateBalanceDisplay();
-    return currentMoney;
+    return gameState.balance;
 }
 
 function adjustBalance(delta) {
     if (typeof delta !== 'number' || Number.isNaN(delta)) {
-        return currentMoney;
+        return gameState.balance;
     }
-
-    return setBalance(currentMoney + delta);
+    return setBalance(gameState.balance + delta);
 }
+// -------------------------------------------------------------------------
 
+// Rendering functions until line 559
+//
+//
 function renderGameState() {
     renderWaterStats();
     renderPlants();
@@ -565,7 +670,12 @@ function renderHarvest() {
         harvestListEl.appendChild(container);
     });
 }
+// -------------------------------------------------------------------------
 
+
+// Update functions until line 620
+// 
+//
 function updateWaterStat(key, updates) {
     const stat = gameState.waterStats.find((entry) => entry.key === key);
     if (!stat) {
@@ -614,7 +724,12 @@ function updateInventoryItem(listName, key, updates) {
     renderInventory();
     return item;
 }
+// -------------------------------------------------------------------------
 
+
+// Crisis event system
+//
+//
 function triggerCrisisEvent(day) {
     const crisisEvent = getCrisisEventForDay(day);
     openCrisis(crisisEvent);
@@ -662,7 +777,7 @@ function renderCrisisOptions(options) {
         button.textContent = option.label;
         button.addEventListener('click', () => {
             if (typeof option.onSelect === 'function') {
-                option.onSelect({ day: currentDay });
+                option.onSelect({ day: gameState.day });
             }
             closeCrisis();
         });
@@ -693,8 +808,12 @@ function closeCrisis() {
         crisisPopup.classList.remove('active');
     }
 }
+// -------------------------------------------------------------------------
 
-// Close popup when clicking outside
+
+// Close popups when clicking outside
+//
+//
 document.getElementById('stats-popup').addEventListener('click', function (e) {
     if (e.target === this) {
         closeStats();
@@ -720,15 +839,29 @@ document.getElementById('inventory-popup').addEventListener('click', function (e
         closeInventory();
     }
 });
+// -------------------------------------------------------------------------
+
 
 if (fastForwardButton) {
     fastForwardButton.addEventListener('click', advanceDay);
+}
+
+if (gillNextButton) {
+    gillNextButton.addEventListener('click', handleGillNext);
 }
 
 if (crisisPopup) {
     crisisPopup.addEventListener('click', function (e) {
         if (e.target === this) {
             closeCrisis();
+        }
+    });
+}
+
+if (gillPopup) {
+    gillPopup.addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeGill();
         }
     });
 }
@@ -741,10 +874,15 @@ updateDayDisplay();
 updateBalanceDisplay();
 renderGameState();
 
+// Show Gill's welcome message on day 1
+if (gameState.day === 1) {
+    openGill(1);
+}
+
 if (typeof window !== 'undefined') {
     window.setBalance = setBalance;
     window.adjustBalance = adjustBalance;
-    window.getCurrentBalance = () => currentMoney;
+    window.getCurrentBalance = () => gameState.balance;
     window.gameState = gameState;
     window.renderGameState = renderGameState;
     window.updateWaterStat = updateWaterStat;

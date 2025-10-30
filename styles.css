@@ -568,3 +568,114 @@ button.primary:hover {
     font-weight: bold;
     color: #4CAF50;
 }
+
+/* Gill Guide Popup Styles */
+.gill-container {
+    max-width: 600px;
+    width: 90%;
+    background: white;
+    border: 3px solid #333;
+    border-radius: 20px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.gill-header {
+    background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 3px solid #333;
+}
+
+.gill-avatar {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border: 3px solid #333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.gill-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gill-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.gill-speech-bubble {
+    background: #f9f9f9;
+    padding: 18px 42px;
+    margin: 18px 32px 12px;
+    border-radius: 18px;
+    border: 2px solid #696969;
+    position: relative;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+}
+
+.gill-speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 30px;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid #696969;
+}
+
+.gill-speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 32px;
+    width: 0;
+    height: 0;
+    border-left: 13px solid transparent;
+    border-right: 13px solid transparent;
+    border-bottom: 13px solid #f9f9f9;
+}
+
+.gill-speech-bubble p {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.gill-footer {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.gill-continue-btn {
+    background: #4CAF50;
+    color: white;
+    border: 2px solid #45a049;
+    padding: 12px 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gill-continue-btn:hover {
+    background: #45a049;
+}
