@@ -56,50 +56,81 @@ const gameState = {
         {
             key: 'ammonia',
             label: 'Ammonia (NH₃)',
-            displayValue: '0.7 ppm',
-            safeRange: 'Safe: 0-0.5 ppm',
-            percent: 75,
-            statusClass: 'danger'
+            value: 0.4,
+            unit: 'ppm',
+            safeRangeDisplay: '0-0.5 ppm',
+            minValue: 0,
+            maxValue: 2,
+            ranges: {
+                safe: [0, 0.5],
+                warning: [0.6, 1.0]
+                // Above warning max is danger
+            }
         },
         {
             key: 'nitrite',
             label: 'Nitrite (NO₂⁻)',
-            displayValue: '0.1 ppm',
-            safeRange: 'Safe: 0-0.5 ppm',
-            percent: 20,
-            statusClass: ''
+            value: 0.1,
+            unit: 'ppm',
+            safeRangeDisplay: '0-0.5 ppm',
+            minValue: 0,
+            maxValue: 2,
+            ranges: {
+                safe: [0, 0.5],
+                warning: [0.6, 1.0]
+            }
         },
         {
             key: 'nitrate',
             label: 'Nitrate (NO₃⁻)',
-            displayValue: '30 ppm',
-            safeRange: 'Optimal: 40-80 ppm',
-            percent: 60,
-            statusClass: 'warning'
+            value: 45,
+            unit: 'ppm',
+            safeRangeDisplay: '40-80 ppm',
+            minValue: 0,
+            maxValue: 150,
+            ranges: {
+                safe: [40, 80],
+                warning: [20, 100]
+            }
         },
         {
             key: 'ph',
             label: 'pH Level',
-            displayValue: '6.5',
-            safeRange: 'Safe: 6.8-7.2',
-            percent: 55,
-            statusClass: 'warning'
+            value: 6.5,
+            unit: '',
+            safeRangeDisplay: '6.8-7.2',
+            minValue: 6.0,
+            maxValue: 8.0,
+            ranges: {
+                safe: [6.8, 7.2],
+                warning: [6.5, 7.5]
+            }
         },
         {
             key: 'temperature',
             label: 'Temperature',
-            displayValue: '65°F',
-            safeRange: 'Optimal: 65°F',
-            percent: 50,
-            statusClass: ''
+            value: 68,
+            unit: '°F',
+            safeRangeDisplay: '68-75°F',
+            minValue: 60,
+            maxValue: 85,
+            ranges: {
+                safe: [68, 75],
+                warning: [65, 80]
+            }
         },
         {
             key: 'dissolved-oxygen',
             label: 'Dissolved Oxygen',
-            displayValue: '8.5 mg/L',
-            safeRange: 'Safe: >5 mg/L',
-            percent: 85,
-            statusClass: ''
+            value: 8.5,
+            unit: 'mg/L',
+            safeRangeDisplay: '>5 mg/L',
+            minValue: 0,
+            maxValue: 10,
+            ranges: {
+                safe: [6, 10],
+                warning: [5, 10]
+            }
         }
     ],
     plants: [
@@ -283,9 +314,11 @@ const crisisEventsByDay = {
 const gillMessagesByDay = {
     1: [
         `Hey there! I'm Gill. I'm here to guide you through your aquaponics journey.`,
-        `Welcome to FlowFarm! I'll pop up each day with a quick check-in and some tips.`,
         `Aquaponics is all about teamwork: fish provide nutrients for plants, and plants clean the water for fish.`,
-        `Start by exploring your Stats and Inventory panels. Your system is counting on you!`
+        `For now, you're going to be in charge of this small deep-water culture tank. You can learn more about the details of these aquaponics terms in help tab in your own time. Right now, let's talk about running your system.`,
+        `Most days, you don't have to do much. Just do these three things daily: feed the fish, check your water stats, and the health of your fish and plants.`,
+        `Sometimes, unexpected things happen. Aquaponics systems can be sensitive and involve trial and error. Don't worry and believe in yourself!`,
+        `That's all for now. I'll check in again tomorrow. Explore a bit, and have fun!`
     ]
 };
 
@@ -644,12 +677,12 @@ function handleGillNext() {
 function advanceDay() {
     gameState.day += 1;
     updateDayDisplay();
-    
+
     // Show Gill's message first if available for this day
     if (gillMessagesByDay[gameState.day]) {
         openGill(gameState.day);
     }
-    
+
     triggerCrisisEvent(gameState.day);
 }
 
@@ -694,12 +727,27 @@ function renderGameState() {
     renderInventory();
 }
 
+// Helper function to calculate status class
+function getStatusClass(value, ranges) {
+    const [safeMin, safeMax] = ranges.safe;
+    const [warningMin, warningMax] = ranges.warning;
+
+    if (value >= safeMin && value <= safeMax) {
+        return 'safe';
+    }
+    if (value >= warningMin && value <= warningMax) {
+        return 'warning';
+    }
+    return 'danger';
+}
+
 function renderWaterStats() {
     if (!waterStatsContainer) {
         return;
     }
 
     waterStatsContainer.innerHTML = '';
+
     gameState.waterStats.forEach((stat) => {
         const row = document.createElement('div');
         row.className = 'stat-row';
@@ -712,16 +760,18 @@ function renderWaterStats() {
         barEl.className = 'stat-bar';
 
         const fillEl = document.createElement('div');
-        fillEl.className = 'stat-fill';
-        if (stat.statusClass) {
-            fillEl.classList.add(stat.statusClass);
-        }
-        fillEl.style.width = `${stat.percent}%`;
+
+        const statusClass = getStatusClass(stat.value, stat.ranges);
+        fillEl.className = `stat-fill ${statusClass}`;
+
+        const percent = ((stat.value - stat.minValue) / (stat.maxValue - stat.minValue)) * 100;
+        fillEl.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+
         barEl.appendChild(fillEl);
 
         const valueEl = document.createElement('div');
         valueEl.className = 'stat-value';
-        valueEl.textContent = `${stat.displayValue} (${stat.safeRange})`;
+        valueEl.textContent = `${stat.value}${stat.unit} (${stat.safeRangeDisplay})`;
 
         row.appendChild(labelEl);
         row.appendChild(barEl);
