@@ -755,3 +755,18 @@ button.primary:hover {
 .gill-continue-btn:hover {
     background: #45a049;
 }
+
+@keyframes dayTransitionFade {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes stat-update-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.stat-update-pulse {
+    animation: stat-update-pulse 500ms ease-in-out;
+}

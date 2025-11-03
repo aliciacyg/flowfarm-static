@@ -1001,16 +1001,49 @@ function handleGillNext() {
 //
 //
 function advanceDay() {
+    // Store old values for animation comparison
+    const oldDay = gameState.day;
+    
+    // Increment day
     gameState.day += 1;
-    updateDayDisplay();
-    applyFilterMaintenanceRules();
+    
+    // Create transition effect
+    createDayTransition();
+    
+    // Update display after brief delay to sync with transition
+    setTimeout(() => {
+        updateDayDisplay();
+        applyFilterMaintenanceRules();
+        
+        // Show Gill's message after transition completes
+        if (gillMessagesByDay[gameState.day]) {
+            openGill(gameState.day);
+        }
+        // triggerCrisisEvent(gameState.day);
+    }, 300); // Match this to your transition duration
+}
 
-    // Show Gill's message first if available for this day
-    if (gillMessagesByDay[gameState.day]) {
-        openGill(gameState.day);
-    }
-
-    // triggerCrisisEvent(gameState.day);
+function createDayTransition() {
+    // Create overlay element for fade effect
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.4);
+        pointer-events: none;
+        z-index: 9998;
+        animation: dayTransitionFade 300ms ease-in-out;
+    `;
+    document.body.appendChild(overlay);
+    
+    // Play sound effect
+    // playSound('dayAdvance');
+    
+    // Remove overlay after animation
+    setTimeout(() => overlay.remove(), 300);
 }
 
 function applyFilterMaintenanceRules() {
