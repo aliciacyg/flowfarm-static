@@ -18,6 +18,7 @@ const gillNextButton = document.getElementById('gill-next-btn');
 const communityPopup = document.getElementById('community-popup');
 const communityRequestListEl = document.getElementById('community-request-list');
 const communityRequestEmptyEl = document.getElementById('community-request-empty');
+const activeRequestButton = document.getElementById('active-request-btn');
 const requestDetailPopup = document.getElementById('request-detail-popup');
 const requestDetailTitleEl = document.getElementById('request-detail-title');
 const requestDetailPostedByEl = document.getElementById('request-detail-posted-by');
@@ -28,7 +29,7 @@ const requestBackButton = document.getElementById('request-detail-back-btn');
 const requestAcceptButton = document.getElementById('request-accept-btn');
 const requestCompleteButton = document.getElementById('request-complete-btn');
 
-const DEFAULT_STARTING_BALANCE = 20;
+const DEFAULT_STARTING_BALANCE = 500;
 
 const communityRequests = [
     {
@@ -43,7 +44,7 @@ const communityRequests = [
             '1x Fish (any species)'
         ],
         rewards: '+10 Reputation, Aquarium Heater (value $50)',
-        rewardPreview: '💰 +10 Reputation | 🎁 Mystery Gift'
+        rewardPreview: '💰 +10 Reputation | 🎁 Gift'
     }
 ];
 
@@ -64,7 +65,7 @@ const gameState = {
             ranges: {
                 safe: [0, 0.5],
                 warning: [0.6, 1.0]
-                // Above warning max is danger
+                // Outside set ranges is danger
             }
         },
         {
@@ -96,7 +97,7 @@ const gameState = {
         {
             key: 'ph',
             label: 'pH Level',
-            value: 6.5,
+            value: 7.0,
             unit: '',
             safeRangeDisplay: '6.8-7.2',
             minValue: 6.0,
@@ -154,6 +155,13 @@ const gameState = {
             name: 'Basil',
             quantity: 2,
             daysToHarvest: 0
+        },
+        {
+            key: 'strawberry',
+            icon: '🍓',
+            name: 'Strawberry',
+            quantity: 5,
+            daysToHarvest: 14
         }
     ],
     fish: [
@@ -162,8 +170,8 @@ const gameState = {
             icon: '🐟',
             name: 'Goldfish #1',
             species: 'Common Goldfish',
-            size: '12 cm',
-            age: '120 days',
+            size: 12,
+            age: 120,
             healthPercent: 95,
             healthLabel: 'Healthy'
         },
@@ -172,8 +180,8 @@ const gameState = {
             icon: '🐟',
             name: 'Goldfish #2',
             species: 'Common Goldfish',
-            size: '10 cm',
-            age: '90 days',
+            size: 10,
+            age: 90,
             healthPercent: 85,
             healthLabel: 'Healthy'
         },
@@ -182,8 +190,8 @@ const gameState = {
             icon: '🐠',
             name: 'Tilapia #1',
             species: 'Nile Tilapia',
-            size: '18 cm',
-            age: '150 days',
+            size: 18,
+            age: 150,
             healthPercent: 70,
             healthLabel: 'Stressed - pH too low',
             healthColor: '#ff9800'
@@ -195,7 +203,7 @@ const gameState = {
                 key: 'fish-feed',
                 icon: '🫘',
                 name: 'Fish Feed',
-                quantityLabel: '250g remaining',
+                quantityLabel: '500g remaining',
                 description: 'Standard pellet feed for goldfish and tilapia'
             },
             {
@@ -272,10 +280,11 @@ const gameState = {
             }
         ],
         harvest: [
-            { key: 'lettuce-harvest', icon: '🥬', name: 'Lettuce', quantity: 12 },
+            { key: 'lettuce-harvest', icon: '🥬', name: 'Lettuce', quantity: 0 },
             { key: 'tomato-harvest', icon: '🍅', name: 'Tomato', quantity: 0 },
-            { key: 'basil-harvest', icon: '🌿', name: 'Basil', quantity: 8 },
-            { key: 'goldfish-harvest', icon: '🐟', name: 'Goldfish', quantity: 2 },
+            { key: 'basil-harvest', icon: '🌿', name: 'Basil', quantity: 0 },
+            { key: 'strawberry-harvest', icon: '🍓', name: 'Strawberry', quantity: 0 },
+            { key: 'goldfish-harvest', icon: '🐟', name: 'Goldfish', quantity: 0 },
             { key: 'tilapia-harvest', icon: '🐠', name: 'Tilapia', quantity: 0 }
         ]
     },
@@ -319,6 +328,10 @@ const gillMessagesByDay = {
         `Most days, you don't have to do much. Just do these three things daily: feed the fish, check your water stats, and the health of your fish and plants.`,
         `Sometimes, unexpected things happen. Aquaponics systems can be sensitive and involve trial and error. Don't worry and believe in yourself!`,
         `That's all for now. I'll check in again tomorrow. Explore a bit, and have fun!`
+    ],
+    2: [
+        `See? Pretty easy, right? Just a few simple tasks each day to keep your aquaponics system running smoothly.`,
+        `Most days are going to be like this. But every so often, something unexpected might happen.`,
     ]
 };
 
@@ -553,7 +566,17 @@ function handleAcceptRequest() {
     gameState.activeCommunityRequest = acceptedRequest;
 
     renderCommunityBoard();
+    updateActiveRequestButtonVisibility();
     openRequestDetail(acceptedRequest.id, 'active');
+}
+
+function updateActiveRequestButtonVisibility() {
+    if (!activeRequestButton) {
+        return;
+    }
+
+    const hasActiveRequest = Boolean(gameState.activeCommunityRequest);
+    activeRequestButton.style.display = hasActiveRequest ? '' : 'none';
 }
 
 function openActiveRequest() {
@@ -592,6 +615,8 @@ function showNoActiveRequestMessage() {
     if (requestCompleteButton) {
         requestCompleteButton.style.display = 'none';
     }
+
+    updateActiveRequestButtonVisibility();
 }
 // -------------------------------------------------------------------------
 
@@ -677,13 +702,33 @@ function handleGillNext() {
 function advanceDay() {
     gameState.day += 1;
     updateDayDisplay();
+    applyFilterMaintenanceRules();
 
     // Show Gill's message first if available for this day
     if (gillMessagesByDay[gameState.day]) {
         openGill(gameState.day);
     }
 
-    triggerCrisisEvent(gameState.day);
+    // triggerCrisisEvent(gameState.day);
+}
+
+function applyFilterMaintenanceRules() {
+    if (gameState.day % 7 !== 0) {
+        return;
+    }
+
+    const filter = gameState.inventory.equipment.find((item) => item.key === 'filter');
+    if (!filter) {
+        return;
+    }
+
+    const alreadyNeedsCleaning = filter.status.label === 'Needs Cleaning';
+    if (alreadyNeedsCleaning) {
+        return;
+    }
+
+    filter.status = { label: 'Needs Cleaning', type: 'needs-repair', prefix: '⚠' };
+    renderEquipment();
 }
 
 function updateDayDisplay() {
@@ -771,7 +816,7 @@ function renderWaterStats() {
 
         const valueEl = document.createElement('div');
         valueEl.className = 'stat-value';
-        valueEl.textContent = `${stat.value}${stat.unit} (${stat.safeRangeDisplay})`;
+        valueEl.textContent = `${stat.value}${stat.unit} (Optimal: ${stat.safeRangeDisplay})`;
 
         row.appendChild(labelEl);
         row.appendChild(barEl);
@@ -794,8 +839,8 @@ function renderPlants() {
         title.textContent = `${plant.icon} ${plant.name}`;
 
         const info = document.createElement('div');
-        info.className = 'plant-info';
-        const harvestText = plant.daysToHarvest <= 0
+       info.className = 'plant-info';
+       const harvestText = plant.daysToHarvest <= 0
             ? 'Ready to harvest!'
             : `${plant.daysToHarvest} days`;
         info.innerHTML = `<strong>Quantity:</strong> ${plant.quantity} plants<br>
@@ -823,8 +868,8 @@ function renderFish() {
         const info = document.createElement('div');
         info.className = 'fish-info';
         info.innerHTML = `<strong>Species:</strong> ${fish.species}<br>
-            <strong>Size:</strong> ${fish.size}<br>
-            <strong>Age:</strong> ${fish.age}`;
+            <strong>Size:</strong> ${fish.size} cm<br>
+            <strong>Age:</strong> ${fish.age} days`;
 
         const healthBar = document.createElement('div');
         healthBar.className = 'health-bar-small';
@@ -918,7 +963,35 @@ function renderEquipment() {
         description.textContent = item.description;
 
         container.appendChild(header);
-        container.appendChild(description);
+
+        if (item.key === 'filter') {
+            const contentRow = document.createElement('div');
+            contentRow.className = 'equipment-content';
+
+            contentRow.appendChild(description);
+
+            const actionContainer = document.createElement('div');
+            actionContainer.className = 'equipment-actions';
+
+            const cleanButton = document.createElement('button');
+            cleanButton.className = 'equipment-action-btn';
+            cleanButton.textContent = 'Clean Filter';
+
+            const isFunctioning = item.status.label === 'Functioning';
+            cleanButton.disabled = isFunctioning;
+
+            cleanButton.addEventListener('click', () => {
+                item.status = { label: 'Functioning', type: 'functioning', prefix: '✓' };
+                renderEquipment();
+            });
+
+            actionContainer.appendChild(cleanButton);
+            contentRow.appendChild(actionContainer);
+            container.appendChild(contentRow);
+        } else {
+            container.appendChild(description);
+        }
+
         equipmentListEl.appendChild(container);
     });
 }
@@ -1163,6 +1236,8 @@ updateDayDisplay();
 updateBalanceDisplay();
 renderGameState();
 renderCommunityBoard();
+updateActiveRequestButtonVisibility();
+applyFilterMaintenanceRules();
 
 // Show Gill's welcome message on day 1
 if (gameState.day === 1) {

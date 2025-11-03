@@ -61,6 +61,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
     font-style: italic;
     margin-bottom: 20px;
     border-radius: 5px;
@@ -68,9 +69,9 @@ body {
 
 .tank-placeholder img {
     max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     border-radius: 5px;
+    flex-shrink: 0;
 }
 
 .button-group {
@@ -533,6 +534,27 @@ button.primary:hover {
 .equipment-info {
     font-size: 12px;
     line-height: 1.5;
+}
+
+.equipment-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.equipment-content .equipment-info {
+    flex: 1;
+}
+
+.equipment-actions {
+    margin-top: 0;
+}
+
+.equipment-action-btn {
+    padding: 6px 14px;
+    font-size: 11px;
+    white-space: nowrap;
 }
 
 /* Harvest Grid */

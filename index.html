@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlowFarm - Home Screen</title>
+  <title>FlowFarm</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -13,22 +13,19 @@
     <!-- Header -->
     <div class="header">
       <div class="points">
-        <span class="currency" id="balance-display">💰 $<span id="balance-amount">500</span></span>
-        <!-- <span class="reputation">🏆 50</span> -->
+        <span class="currency" id="balance-display">💰 $ <span id="balance-amount">500</span></span>
       </div>
       <div class="date" id="current-date">
         Day 1
       </div>
       <div class="header-buttons">
-        <button class="header-btn" onclick="openActiveRequest()">📌 Active Request</button>
-        <button class="header-btn">🎯 Goals</button>
-        <button class="header-btn">⚠️ Warnings</button>
+        <button class="header-btn" id="active-request-btn" onclick="openActiveRequest()">📌 Active Request</button>
       </div>
     </div>
 
     <!-- Tank Placeholder -->
     <div class="tank-placeholder">
-      <img src="aquatank.png" alt="Aquaponics Tank" />
+      <img src="model.png" alt="Aquaponics Tank" />
     </div>
 
     <!-- Action Buttons -->
