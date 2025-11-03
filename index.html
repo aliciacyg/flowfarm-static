@@ -105,7 +105,7 @@
           <!-- List of requests populated through script -->
         </div>
         <p class="no-requests-message" id="community-request-empty" style="display: none; text-align: center;">
-          No community requests available right now.
+          No community requests available right now. Check again tomorrow!
         </p>
       </div>
     </div>
@@ -147,6 +147,21 @@
         <button id="request-detail-back-btn">← Back</button>
         <button class="primary" id="request-accept-btn">Accept Request</button>
         <button class="primary" id="request-complete-btn" disabled style="display: none;">Complete Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Completion Popup -->
+  <div id="request-complete-popup" class="popup">
+    <div class="popup-container small">
+      <div class="popup-header">
+        <h2>🎉 Request Complete</h2>
+        <button class="close-btn" id="request-complete-close-btn">✕ Close</button>
+      </div>
+      <div class="popup-content">
+        <p id="request-complete-message"></p>
+        <div id="request-complete-rewards" class="completion-rewards"></div>
+        <button class="primary" id="request-complete-ok-btn">Great!</button>
       </div>
     </div>
   </div>

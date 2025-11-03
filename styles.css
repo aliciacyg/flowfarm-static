@@ -134,6 +134,28 @@ button {
     flex-direction: column;
 }
 
+#request-complete-popup .popup-container {
+    max-width: 520px;
+}
+
+.popup-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#request-complete-popup .popup-content {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#request-complete-message {
+    margin-bottom: 8px;
+}
+
 .popup-header {
     background: #e0e0e0;
     padding: 15px;
@@ -414,6 +436,33 @@ button {
     padding: 12px;
     border-radius: 5px;
     font-size: 14px;
+}
+
+.completion-rewards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.completion-rewards .reward-summary {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.completion-rewards .reward-details-header {
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+.completion-rewards .reward-list {
+    list-style: disc;
+    margin-left: 20px;
+    margin-top: 6px;
+}
+
+#request-complete-ok-btn {
+    width: 100%;
+    padding: 12px;
 }
 
 .action-buttons {

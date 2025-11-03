@@ -28,6 +28,11 @@ const requestDetailRewardsEl = document.getElementById('request-detail-rewards')
 const requestBackButton = document.getElementById('request-detail-back-btn');
 const requestAcceptButton = document.getElementById('request-accept-btn');
 const requestCompleteButton = document.getElementById('request-complete-btn');
+const requestCompletePopup = document.getElementById('request-complete-popup');
+const requestCompleteMessageEl = document.getElementById('request-complete-message');
+const requestCompleteRewardsEl = document.getElementById('request-complete-rewards');
+const requestCompleteCloseButton = document.getElementById('request-complete-close-btn');
+const requestCompleteOkButton = document.getElementById('request-complete-ok-btn');
 
 const DEFAULT_STARTING_BALANCE = 500;
 
@@ -40,11 +45,33 @@ const communityRequests = [
         preview: 'Mr. Chen needs starter fish and plants for his biology class...',
         description: `My biology class is studying ecosystems and I want to set up a small aquaponics demonstration in our classroom. Could you donate some starter plants and maybe one small fish? The students would love to see the nitrogen cycle in action!`,
         requirements: [
-            '3x Lettuce',
-            '1x Fish (any species)'
+            {
+                type: 'harvest',
+                itemKey: 'lettuce-harvest',
+                quantity: 3,
+                label: '3x Lettuce'
+            },
+            {
+                type: 'harvest',
+                itemKeys: ['goldfish-harvest', 'tilapia-harvest'],
+                quantity: 1,
+                label: '1x Fish (any species)'
+            }
         ],
-        rewards: '+10 Reputation, Aquarium Heater (value $50)',
-        rewardPreview: '💰 +10 Reputation | 🎁 Gift'
+        rewards: {
+            displayText: '+10 Reputation, Aquarium Heater (value $50)',
+            equipment: [
+                {
+                    key: 'aquarium-heater',
+                    icon: '🔥',
+                    name: 'Aquarium Heater',
+                    status: { label: 'Functioning', type: 'functioning', prefix: '✓' },
+                    description: 'Used to increase water temperature. Can be useful to treat fish diseases, or during the winter months.'
+                }
+            ]
+        },
+        rewardPreview: '💰 +10 Reputation | 🎁 Gift',
+        thankYouMessage: 'Thank you so much for your generous donation! My students are going to love learning about aquaponics with this setup. Here, take this. We bought this for the classroom tank but it\'s way too powerful for our little 10-gallon setup. Please take it—you\'ll actually use it!'
     }
 ];
 
@@ -280,21 +307,18 @@ const gameState = {
             }
         ],
         harvest: [
-            { key: 'lettuce-harvest', icon: '🥬', name: 'Lettuce', quantity: 0 },
+            { key: 'lettuce-harvest', icon: '🥬', name: 'Lettuce', quantity: 3 },
             { key: 'tomato-harvest', icon: '🍅', name: 'Tomato', quantity: 0 },
             { key: 'basil-harvest', icon: '🌿', name: 'Basil', quantity: 0 },
             { key: 'strawberry-harvest', icon: '🍓', name: 'Strawberry', quantity: 0 },
-            { key: 'goldfish-harvest', icon: '🐟', name: 'Goldfish', quantity: 0 },
-            { key: 'tilapia-harvest', icon: '🐠', name: 'Tilapia', quantity: 0 }
+            { key: 'goldfish-harvest', icon: '🐟', name: 'Goldfish', quantity: 1 },
+            { key: 'tilapia-harvest', icon: '🐠', name: 'Tilapia', quantity: 1 }
         ]
     },
 
     activeEffects: [],
 
-    communityRequests: communityRequests.map((request) => ({
-        ...request,
-        requirements: request.requirements ? request.requirements.slice() : []
-    })),
+    communityRequests: [...communityRequests],
 
     activeCommunityRequest: null
 };
@@ -393,7 +417,7 @@ function switchInventoryTab(tabName) {
 }
 // -------------------------------------------------------------------------
 
-// Community board popup management
+// Community board popup management and functionality
 //
 //
 function openCommunityBoard() {
@@ -456,7 +480,10 @@ function renderCommunityBoard() {
 
         const reward = document.createElement('div');
         reward.className = 'request-reward';
-        reward.textContent = request.rewardPreview || request.rewards || '';
+        const rewardText = request.rewardPreview
+            || (request.rewards && request.rewards.displayText)
+            || '';
+        reward.textContent = rewardText;
 
         item.appendChild(header);
         item.appendChild(preview);
@@ -468,6 +495,31 @@ function renderCommunityBoard() {
 
         communityRequestListEl.appendChild(item);
     });
+}
+
+function getRequirementLabel(requirement) {
+    if (!requirement) {
+        return '';
+    }
+
+    if (requirement.label) {
+        return requirement.label;
+    }
+
+    const quantityText = typeof requirement.quantity === 'number'
+        ? `${requirement.quantity}x `
+        : '';
+
+    if (requirement.itemKey) {
+        return `${quantityText}${requirement.itemKey}`;
+    }
+
+    if (Array.isArray(requirement.itemKeys) && requirement.itemKeys.length > 0) {
+        const combined = requirement.itemKeys.join(' / ');
+        return `${quantityText}${combined}`;
+    }
+
+    return quantityText.trim();
 }
 
 function openRequestDetail(requestId, context = 'board') {
@@ -511,13 +563,16 @@ function populateRequestDetail(request, context) {
         if (Array.isArray(request.requirements) && request.requirements.length > 0) {
             request.requirements.forEach((requirement) => {
                 const li = document.createElement('li');
-                li.textContent = requirement;
+                li.textContent = getRequirementLabel(requirement);
                 requestDetailRequirementsEl.appendChild(li);
             });
         }
     }
 
-    requestDetailRewardsEl.textContent = request.rewards || '';
+    const rewardDisplay = request.rewards && request.rewards.displayText
+        ? request.rewards.displayText
+        : '';
+    requestDetailRewardsEl.textContent = rewardDisplay;
 
     if (requestAcceptButton) {
         if (context === 'board') {
@@ -534,11 +589,180 @@ function populateRequestDetail(request, context) {
     if (requestCompleteButton) {
         if (context === 'active') {
             requestCompleteButton.style.display = 'inline-block';
-            requestCompleteButton.disabled = true;
+            const canComplete = canCompleteRequest(request);
+            requestCompleteButton.disabled = !canComplete;
         } else {
             requestCompleteButton.style.display = 'none';
         }
     }
+}
+
+function canCompleteRequest(request = null) {
+    const targetRequest = request || gameState.activeCommunityRequest;
+    if (!targetRequest) {
+        return false;
+    }
+
+    if (!Array.isArray(targetRequest.requirements) || targetRequest.requirements.length === 0) {
+        return true;
+    }
+
+    return targetRequest.requirements.every((requirement) => isRequirementMet(requirement));
+}
+
+function isRequirementMet(requirement) {
+    if (!requirement) {
+        return true;
+    }
+
+    switch (requirement.type) {
+        case 'harvest':
+            return isHarvestRequirementMet(requirement);
+        default:
+            return true;
+    }
+}
+
+function isHarvestRequirementMet(requirement) {
+    const requiredQuantity = Math.max(0, Number(requirement.quantity) || 0);
+    if (requiredQuantity === 0) {
+        return true;
+    }
+
+    const keys = Array.isArray(requirement.itemKeys) && requirement.itemKeys.length > 0
+        ? requirement.itemKeys
+        : requirement.itemKey
+            ? [requirement.itemKey]
+            : [];
+
+    if (keys.length === 0) {
+        return false;
+    }
+
+    const totalAvailable = keys.reduce((total, itemKey) => total + getHarvestQuantity(itemKey), 0);
+    return totalAvailable >= requiredQuantity;
+}
+
+function getHarvestItem(itemKey) {
+    if (!itemKey) {
+        return null;
+    }
+    return gameState.inventory.harvest.find((entry) => entry.key === itemKey) || null;
+}
+
+function getHarvestQuantity(itemKey) {
+    const item = getHarvestItem(itemKey);
+    if (!item || typeof item.quantity !== 'number') {
+        return 0;
+    }
+    return item.quantity;
+}
+
+function consumeCommunityRequestRequirements(request) {
+    if (!request || !Array.isArray(request.requirements)) {
+        return;
+    }
+
+    request.requirements.forEach((requirement) => {
+        if (!requirement) {
+            return;
+        }
+
+        if (requirement.type === 'harvest') {
+            consumeHarvestRequirement(requirement);
+        }
+    });
+}
+
+function consumeHarvestRequirement(requirement) {
+    const requiredQuantity = Math.max(0, Number(requirement.quantity) || 0);
+    if (requiredQuantity === 0) {
+        return;
+    }
+
+    const keys = Array.isArray(requirement.itemKeys) && requirement.itemKeys.length > 0
+        ? requirement.itemKeys
+        : requirement.itemKey
+            ? [requirement.itemKey]
+            : [];
+
+    if (keys.length === 0) {
+        return;
+    }
+
+    let remaining = requiredQuantity;
+    keys.forEach((itemKey) => {
+        if (remaining <= 0) {
+            return;
+        }
+
+        const item = getHarvestItem(itemKey);
+        if (!item || typeof item.quantity !== 'number' || item.quantity <= 0) {
+            return;
+        }
+
+        const deduction = Math.min(item.quantity, remaining);
+        item.quantity -= deduction;
+        remaining -= deduction;
+    });
+}
+
+function addEquipmentRewards(rewards) {
+    if (!rewards || typeof rewards !== 'object') {
+        return [];
+    }
+
+    const equipmentRewards = Array.isArray(rewards.equipment) ? rewards.equipment : [];
+    if (!equipmentRewards.length) {
+        return [];
+    }
+
+    const newlyAdded = [];
+    equipmentRewards.forEach((rewardItem) => {
+        if (!rewardItem) {
+            return;
+        }
+
+        const clonedItem = {
+            ...rewardItem,
+            status: rewardItem.status ? { ...rewardItem.status } : { label: 'Functioning', type: 'functioning', prefix: '✓' }
+        };
+
+        if (!clonedItem.key) {
+            clonedItem.key = `reward-equipment-${Date.now()}`;
+        }
+
+        let uniqueKey = clonedItem.key;
+        let suffix = 1;
+        while (gameState.inventory.equipment.some((existing) => existing.key === uniqueKey)) {
+            suffix += 1;
+            uniqueKey = `${clonedItem.key}-${suffix}`;
+        }
+        clonedItem.key = uniqueKey;
+
+        gameState.inventory.equipment.push(clonedItem);
+        newlyAdded.push(clonedItem);
+    });
+
+    if (newlyAdded.length > 0) {
+        renderEquipment();
+    }
+
+    return newlyAdded;
+}
+
+function updateRequestCompletionButtonState() {
+    if (!requestCompleteButton) {
+        return;
+    }
+
+    const hasActiveRequest = Boolean(gameState.activeCommunityRequest);
+    if (!hasActiveRequest) {
+        requestCompleteButton.disabled = true;
+        return;
+    }
+
+    requestCompleteButton.disabled = !canCompleteRequest();
 }
 
 function closeRequestDetail() {
@@ -617,6 +841,83 @@ function showNoActiveRequestMessage() {
     }
 
     updateActiveRequestButtonVisibility();
+}
+
+function handleCompleteRequest() {
+    const activeRequest = gameState.activeCommunityRequest;
+    if (!activeRequest) {
+        return;
+    }
+
+    if (!canCompleteRequest(activeRequest)) {
+        updateRequestCompletionButtonState();
+        return;
+    }
+
+    consumeCommunityRequestRequirements(activeRequest);
+    const equipmentRewards = addEquipmentRewards(activeRequest.rewards);
+
+    renderInventory();
+
+    gameState.activeCommunityRequest = null;
+    currentRequestContext = null;
+
+    updateActiveRequestButtonVisibility();
+    renderCommunityBoard();
+    updateRequestCompletionButtonState();
+    closeRequestDetail();
+    showRequestCompletionPopup(activeRequest, { equipment: equipmentRewards });
+}
+
+function showRequestCompletionPopup(request, rewardsGranted) {
+    if (!requestCompletePopup || !requestCompleteMessageEl || !requestCompleteRewardsEl) {
+        return;
+    }
+
+    const title = request.title || 'Community Request';
+    const postedBy = request.postedBy ? ` for ${request.postedBy}` : '';
+    const thankYouText = request.thankYouMessage;
+    requestCompleteMessageEl.textContent = thankYouText;
+
+    requestCompleteRewardsEl.innerHTML = '';
+
+    const rewardSummaryText = request.rewards && request.rewards.displayText
+        ? request.rewards.displayText
+        : 'Rewards delivered.';
+
+    const summaryParagraph = document.createElement('p');
+    summaryParagraph.className = 'reward-summary';
+    summaryParagraph.textContent = `Rewards: ${rewardSummaryText}`;
+    requestCompleteRewardsEl.appendChild(summaryParagraph);
+
+    const equipmentList = Array.isArray(rewardsGranted && rewardsGranted.equipment)
+        ? rewardsGranted.equipment
+        : [];
+
+    if (equipmentList.length > 0) {
+        const listHeader = document.createElement('p');
+        listHeader.className = 'reward-details-header';
+        listHeader.textContent = 'New equipment added to your inventory:';
+        requestCompleteRewardsEl.appendChild(listHeader);
+
+        const list = document.createElement('ul');
+        list.className = 'reward-list';
+        equipmentList.forEach((item) => {
+            const li = document.createElement('li');
+            const icon = item.icon ? `${item.icon} ` : '';
+            li.textContent = `${icon}${item.name}`;
+            list.appendChild(li);
+        });
+        requestCompleteRewardsEl.appendChild(list);
+    }
+
+    requestCompletePopup.classList.add('active');
+}
+
+function closeRequestCompletionPopup() {
+    if (requestCompletePopup) {
+        requestCompletePopup.classList.remove('active');
+    }
 }
 // -------------------------------------------------------------------------
 
@@ -900,6 +1201,7 @@ function renderInventory() {
     renderConsumables();
     renderEquipment();
     renderHarvest();
+    updateRequestCompletionButtonState();
 }
 
 function renderConsumables() {
@@ -1230,6 +1532,26 @@ if (requestBackButton) {
 
 if (requestAcceptButton) {
     requestAcceptButton.addEventListener('click', handleAcceptRequest);
+}
+
+if (requestCompleteButton) {
+    requestCompleteButton.addEventListener('click', handleCompleteRequest);
+}
+
+if (requestCompleteCloseButton) {
+    requestCompleteCloseButton.addEventListener('click', closeRequestCompletionPopup);
+}
+
+if (requestCompleteOkButton) {
+    requestCompleteOkButton.addEventListener('click', closeRequestCompletionPopup);
+}
+
+if (requestCompletePopup) {
+    requestCompletePopup.addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeRequestCompletionPopup();
+        }
+    });
 }
 
 updateDayDisplay();
