@@ -323,23 +323,214 @@ const gameState = {
     activeCommunityRequest: null
 };
 
-// Stubs for crisis event system
-const defaultCrisisOptions = [
-    'Option 1 stub',
-    'Option 2 stub',
-    'Option 3 stub'
-];
-
 // Add new crisis events keyed by day number.
 const crisisEventsByDay = {
-    16: {
-        title: '⚠️ Crisis Event: Pump Pressure Spike',
-        description: 'TODO: Describe the situation players face on day 16.',
+    5: {
+        title: '⚠️ Crisis Event: pH drop!',
+        description: 'Your pH has dropped to 6.0 overnight. Plants can still grow, but fish are becoming stressed.',
         options: [
-            'Option 1 stub',
-            'Option 2 stub',
-            'Option 3 stub'
-        ]
+            {
+                id: 'calcium-carbonate-choice',
+                label: 'Add Calcium Carbonate (- $15)',
+                description: 'This will slowly buffer the pH up over a few days',
+                cost: 15,
+                immediate: {},
+                delayed: {},
+                gillMessage: ``
+            },
+            {
+                id: 'baking-soda-choice',
+                label: 'Add Baking Soda (- $10)',
+                description: 'Quick fix. Will not last, and could stress the fish if overused.',
+                cost: 10,
+                immediate: {},
+                delayed: {},
+                gillMessage: ``
+            },
+            {
+                id: 'sell-fish-choice',
+                label: 'Sell Half Your Fish (+ $30)',
+                description: 'Reduces bioload and acid production. Will also lower nutrient levels for plants.',
+                cost: -30,
+                immediate: {},
+                delayed: {},
+                gillMessage: ``
+            },
+            {
+                id: 'wait-and-monitor-choice',
+                label: 'Wait and Monitor',
+                description: 'You risk stressed fish and poor plant growth if pH remains low.',
+                cost: 0,
+                immediate: {},
+                delayed: {},
+                gillMessage: ``
+            }
+        ],
+        10: {
+            title: '⚠️ Crisis Event: Ammonia buildup!',
+            description: 'You overfed the fish yesterday and ammonia levels are climbing to dangerous levels.',
+            options: [
+                {
+                    id: 'water-change-choice',
+                    label: 'Perform 50% Water Change (- $10)',
+                    description: 'Dilutes ammonia concentration quickly, but stressful for fish.',
+                    cost: 10,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: `Explain what dilution means and why it helps.`
+                },
+                {
+                    id: 'add-beneficial-bacteria-choice',
+                    label: 'Add Beneficial Bacteria (- $25)',
+                    description: 'Helps break down ammonia and improve water quality over time.',
+                    cost: 25,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: `Beneficial bacteria help convert harmful ammonia into less toxic substances.`
+                },
+                {
+                    id: 'skip-feeding-choice',
+                    label: 'Skip Feeding',
+                    description: 'Avoid adding more ammonia by not feeding the fish for a couple of days. Slow recovery.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                }
+            ]
+        },
+        13: {
+            title: '⚠️ Crisis Event: Power Outage!',
+            description: 'A storm knocked out power for 6 hours. Your pump stopped running and oxygen levels dropped.',
+            options: [
+                {
+                    id: 'manual-aeration-choice',
+                    label: 'Use Manual Aeration (- $30)',
+                    description: 'Use a battery-powered aerator to increase oxygen levels temporarily.',
+                    cost: 30,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                },
+                {
+                    id: 'backup-generator-choice',
+                    label: 'Buy a Backup Generator (- $150)',
+                    description: 'Prevents future issues.',
+                    cost: 150,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                },
+                {
+                    id: 'do-nothing-power-choice',
+                    label: 'Do Nothing',
+                    description: 'Chance of losing 10-20% of fish due to low oxygen.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                }
+            ]
+        },
+        17: {
+            title: '⚠️ Crisis Event: Root Rot Outbreak!',
+            description: 'Several of your plants are showing signs of root rot due to poor water circulation.',
+            options: [
+                {
+                    id: 'remove-affected-plants-choice',
+                    label: 'Remove Affected Plants (- $0)',
+                    description: 'Lose 5 plants but save the system.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: `Description about how diseases spread in plants`
+                },
+                {
+                    id: 'hydrogen-peroxide-choice',
+                    label: 'Treat with Hydrogen Peroxide (- $20)',
+                    description: 'May save some plants, but will stress the fish',
+                    cost: 20,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                }
+            ]
+        },
+        20: {
+            title: '⚠️ Crisis Event: Fish Disease Spotted!',
+            description: 'You notice white spots (ich) on several fish. It\'s spreading quickly.',
+            options: [
+                {
+                    id: 'quarantine-choice',
+                    label: 'Quarantine Affected Fish',
+                    description: 'Lose the sick fish but save the rest.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                },
+                {
+                    id: 'aquarine-salt-choice',
+                    label: 'Treat with Aquarium Salt (- $25)',
+                    description: 'Cures the fish, but might kill some plants.',
+                    cost: 25,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                },
+                {
+                    id: 'raise-temperature-choice',
+                    label: 'Raise Temperature Gradually to 82-86°F ',
+                    description: 'Mr. Chen\'s gift is coming in handy! This will cure the fish, but stress the plants slightly.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                },
+                {
+                    id: 'do-nothing-disease-choice',
+                    label: 'Do Nothing',
+                    description: 'Chance of losing 50-70% of fish stock due to disease. Plants stay healthy.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                }
+            ]
+        },
+        30: {
+            title: '⚠️ Crisis Event: Pest Infestation!',
+            description: 'Aphids have appeared on your plants and are multiplying rapidly.',
+            options: [
+                {
+                    id: 'introduce-ladybugs-choice',
+                    label: 'Introduce Ladybugs (- $40)',
+                    description: 'Organic pest control. Safe for plants and fish. Will take 3 days. Some plants may be damaged in the meantime.',
+                    cost: 40,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                },
+                {
+                    id: 'manual-removal-choice',
+                    label: 'Manual Removal (- $0)',
+                    description: 'Physically remove aphids from plants. Labor-intensive but immediate and no cost.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: `This would not be free or convenient with a larger system`
+                },
+                {
+                    id: 'remove-infected-plants-choice',
+                    label: 'Remove Infected Plants (- $0)',
+                    description: 'Lose 30% of plants but eliminate pests completely.',
+                    cost: 0,
+                    immediate: {},
+                    delayed: {},
+                    gillMessage: ``
+                }
+            ]
+        }
     }
 };
 
@@ -1003,24 +1194,25 @@ function handleGillNext() {
 function advanceDay() {
     // Store old values for animation comparison
     const oldDay = gameState.day;
-    
+
     // Increment day
     gameState.day += 1;
-    
+
     // Create transition effect
     createDayTransition();
-    
+
     // Update display after brief delay to sync with transition
     setTimeout(() => {
         updateDayDisplay();
         applyFilterMaintenanceRules();
-        
+
         // Show Gill's message after transition completes
         if (gillMessagesByDay[gameState.day]) {
             openGill(gameState.day);
         }
+        // Check for crisis event
         // triggerCrisisEvent(gameState.day);
-    }, 300); // Match this to your transition duration
+    }, 300);
 }
 
 function createDayTransition() {
@@ -1038,10 +1230,10 @@ function createDayTransition() {
         animation: dayTransitionFade 300ms ease-in-out;
     `;
     document.body.appendChild(overlay);
-    
+
     // Play sound effect
     // playSound('dayAdvance');
-    
+
     // Remove overlay after animation
     setTimeout(() => overlay.remove(), 300);
 }
@@ -1173,8 +1365,8 @@ function renderPlants() {
         title.textContent = `${plant.icon} ${plant.name}`;
 
         const info = document.createElement('div');
-       info.className = 'plant-info';
-       const harvestText = plant.daysToHarvest <= 0
+        info.className = 'plant-info';
+        const harvestText = plant.daysToHarvest <= 0
             ? 'Ready to harvest!'
             : `${plant.daysToHarvest} days`;
         info.innerHTML = `<strong>Quantity:</strong> ${plant.quantity} plants<br>
