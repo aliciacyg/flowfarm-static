@@ -486,6 +486,7 @@ button.primary {
 button.primary:disabled {
     background: #696969;
     border-color: #81c784;
+    cursor: not-allowed;
 }
 
 button.primary:hover {
