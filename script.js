@@ -334,12 +334,21 @@ const crisisEventsByDay = {
                 label: 'Add Calcium Carbonate (- $15)',
                 description: 'This will slowly buffer the pH up over a few days',
                 cost: 15,
-                immediate: {},
-                delayed: {},
-                gillMessage: ``
+                immediate: {
+                    waterStats: { ph: 6.2}
+                },
+                delayed: {
+                    waterStats: { ph: 0.6},
+                    daysDelay: 3
+                },
+                gillMessage: [`Wise choice! Calcium carbonate acts slowly, so it won't shock the fish.`,
+                    `Going forward, the water chemistry will be less prone to sudden pH swings too, thanks to the buffering effect.`,
+                    `Plus, calcium is a nutrient that both plants and fish need for healthy growth.`,
+                    `All around, this was probably the best decision you could have made.`
+                ]
             },
             {
-                id: 'baking-soda-choice',
+                id: 'baking-soda-choice (sodium bicarbonate)',
                 label: 'Add Baking Soda (- $10)',
                 description: 'Quick fix. Will not last, and could stress the fish if overused.',
                 cost: 10,
@@ -547,6 +556,12 @@ const gillMessagesByDay = {
     2: [
         `See? Pretty easy, right? Just a few simple tasks each day to keep your aquaponics system running smoothly.`,
         `Most days are going to be like this. But every so often, something unexpected might happen.`,
+    ],
+    7: [
+        `Have you taken a look at your equipment lately?`,
+        `Some pieces of equipment need regular maintenance to keep them functioning properly.`,
+        `For example, your filter needs to be cleaned periodically to prevent clogs and maintain good water quality.`,
+        `Don't forget to check on your filter once a week, just to make sure it's in good shape!`
     ]
 };
 
@@ -1690,10 +1705,10 @@ function updateFishHealthLabel(fish) {
 function applyEffects(effects) {
     // Apply water stat changes
     if (effects.waterStats) {
-        Object.entries(effects.waterStats).forEach(([key, change]) => {
+        Object.entries(effects.waterStats).forEach(([key, newValue]) => {
             const stat = gameState.waterStats.find(s => s.key === key);
             if (stat) {
-                stat.value = Math.max(stat.minValue, Math.min(stat.maxValue, stat.value + change));
+                stat.value = newValue;
             }
         });
         renderWaterStats();
@@ -1843,8 +1858,6 @@ function processDelayedEffects() {
 
 
 // -------------------------------------------------------------------------
-
-
 // Close popups when clicking outside
 //
 //
@@ -1875,33 +1888,16 @@ document.getElementById('inventory-popup').addEventListener('click', function (e
 });
 // -------------------------------------------------------------------------
 
-
+// -------------------------------------------------------------------------
+// Button handlers
+//
+//
 if (fastForwardButton) {
     fastForwardButton.addEventListener('click', advanceDay);
 }
 
 if (gillNextButton) {
     gillNextButton.addEventListener('click', handleGillNext);
-}
-
-if (crisisPopup) {
-    crisisPopup.addEventListener('click', function (e) {
-        if (e.target === this) {
-            closeCrisis();
-        }
-    });
-}
-
-if (gillPopup) {
-    gillPopup.addEventListener('click', function (e) {
-        if (e.target === this) {
-            closeGill();
-        }
-    });
-}
-
-if (crisisOptionsEl) {
-    crisisOptionsEl.innerHTML = '';
 }
 
 if (requestBackButton) {

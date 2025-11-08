@@ -648,35 +648,32 @@ button.primary:hover {
 
 /* Gill Guide Popup Styles */
 .gill-container {
-    max-width: 600px;
+    max-width: 640px;
     width: 90%;
     background: white;
     border: 3px solid #333;
-    border-radius: 20px;
-    padding: 0;
+    border-radius: 24px;
+    padding: 30px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.gill-header {
-    background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
-    padding: 20px;
+.gill-content {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    border-bottom: 3px solid #333;
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 28px;
 }
 
 .gill-avatar {
-    width: 60px;
-    height: 60px;
-    background: white;
-    border: 3px solid #333;
-    border-radius: 50%;
+    width: 150px;
+    height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .gill-avatar img {
@@ -685,60 +682,53 @@ button.primary:hover {
     object-fit: cover;
 }
 
-.gill-name {
-    font-size: 22px;
-    font-weight: bold;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.gill-speech-bubble {
-    background: #f9f9f9;
-    padding: 18px 42px;
-    margin: 18px 32px 12px;
-    border-radius: 18px;
-    border: 2px solid #696969;
-    position: relative;
-    min-height: 80px;
-    display: flex;
-    align-items: center;
-}
-
-.gill-speech-bubble::before {
-    content: '';
-    position: absolute;
-    top: -12px;
-    left: 30px;
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: 15px solid #696969;
-}
-
-.gill-speech-bubble::after {
-    content: '';
-    position: absolute;
-    top: -9px;
-    left: 32px;
-    width: 0;
-    height: 0;
-    border-left: 13px solid transparent;
-    border-right: 13px solid transparent;
-    border-bottom: 13px solid #f9f9f9;
-}
-
-.gill-speech-bubble p {
+.gill-dialog {
     flex: 1;
-    font-size: 16px;
-    line-height: 1.6;
+    background: #f9f9f9;
+    border: 2px solid #696969;
+    border-radius: 18px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 150px;
+    position: relative;
+}
+
+.gill-dialog p {
+    font-size: 17px;
+    line-height: 1.7;
     margin: 0;
 }
 
+.gill-dialog::before {
+  content: '';
+  position: absolute;
+  left: -22px;
+  top: 30px;
+  width: 0;
+  height: 0;
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+  border-right: 22px solid #696969;
+}
+
+.gill-dialog::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 32px;
+  width: 0;
+  height: 0;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-right: 20px solid #f9f9f9;
+}
+
 .gill-footer {
-    padding: 20px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
+    margin-left: calc(150px + 28px);
 }
 
 .gill-continue-btn {
