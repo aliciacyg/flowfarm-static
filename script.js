@@ -335,11 +335,11 @@ const crisisEventsByDay = {
                 description: 'This will slowly buffer the pH up over a few days',
                 cost: 15,
                 immediate: {
-                    waterStats: { ph: 6.2}
+                    waterStats: { ph: -0.8 }
                 },
                 delayed: {
-                    waterStats: { ph: 0.6},
-                    daysDelay: 3
+                    waterStats: { ph: 0.6 },
+                    days: 3
                 },
                 gillMessage: [`Wise choice! Calcium carbonate acts slowly, so it won't shock the fish.`,
                     `Going forward, the water chemistry will be less prone to sudden pH swings too, thanks to the buffering effect.`,
@@ -1147,6 +1147,20 @@ function openGill(day) {
     gillPopup.classList.add('active');
 }
 
+function openGillCrisis(messages) {
+    if (!gillPopup || !gillMessageEl) {
+        return;
+    }
+    if (!messages || (Array.isArray(messages) && messages.length === 0)) {
+        return;
+    }
+    activeGillMessages = Array.isArray(messages) ? messages.slice() : [messages];
+    activeGillIndex = 0;
+    renderGillMessage();
+    updateGillControls();
+    gillPopup.classList.add('active');
+}
+
 function closeGill() {
     if (gillPopup) {
         gillPopup.classList.remove('active');
@@ -1219,7 +1233,7 @@ function advanceDay() {
     // Update display after brief delay to sync with transition
     setTimeout(() => {
         updateDayDisplay();
-        processDelayedEffects();
+        processActiveEffects();
         applyFilterMaintenanceRules();
 
         // Show Gill's message 
@@ -1673,18 +1687,6 @@ function renderCrisisOptions(options) {
     });
 }
 
-function showGillMessage(message) {
-    if (!gillPopup || !gillMessageEl) {
-        return;
-    }
-    
-    activeGillMessages = [message];
-    activeGillIndex = 0;
-    renderGillMessage();
-    updateGillControls();
-    gillPopup.classList.add('active');
-}
-
 function updateFishHealthLabel(fish) {
     if (fish.healthPercent >= 80) {
         fish.healthLabel = 'Healthy';
@@ -1705,43 +1707,43 @@ function updateFishHealthLabel(fish) {
 function applyEffects(effects) {
     // Apply water stat changes
     if (effects.waterStats) {
-        Object.entries(effects.waterStats).forEach(([key, newValue]) => {
+        Object.entries(effects.waterStats).forEach(([key, change]) => {
             const stat = gameState.waterStats.find(s => s.key === key);
             if (stat) {
-                stat.value = newValue;
+                stat.value = Math.max(stat.minValue, Math.min(stat.maxValue, stat.value + change));
             }
         });
         renderWaterStats();
     }
-    
+
     // Apply fish changes
     if (effects.fish) {
         if (typeof effects.fish.removeCount === 'number') {
             const count = Math.min(effects.fish.removeCount, gameState.fish.length);
             gameState.fish.splice(0, count);
         }
-        
+
         if (typeof effects.fish.healthChange === 'number') {
             gameState.fish.forEach(fish => {
                 fish.healthPercent = Math.max(0, Math.min(100, fish.healthPercent + effects.fish.healthChange));
                 updateFishHealthLabel(fish);
             });
         }
-        
+
         if (typeof effects.fish.removePercent === 'number') {
             const removeCount = Math.floor(gameState.fish.length * effects.fish.removePercent);
             gameState.fish.splice(0, removeCount);
         }
-        
+
         renderFish();
     }
-    
+
     // Apply plant changes
     if (effects.plants) {
         if (typeof effects.plants.removeCount === 'number') {
-            let remaining = Math.min(effects.plants.removeCount, 
+            let remaining = Math.min(effects.plants.removeCount,
                 gameState.plants.reduce((sum, p) => sum + p.quantity, 0));
-            
+
             for (let plant of gameState.plants) {
                 if (remaining <= 0) break;
                 if (plant.quantity > 0) {
@@ -1751,17 +1753,17 @@ function applyEffects(effects) {
                 }
             }
         }
-        
+
         if (typeof effects.plants.removePercent === 'number') {
             gameState.plants.forEach(plant => {
                 const removeCount = Math.floor(plant.quantity * effects.plants.removePercent);
                 plant.quantity = Math.max(0, plant.quantity - removeCount);
             });
         }
-        
+
         renderPlants();
     }
-    
+
     // Apply equipment changes
     if (effects.equipment) {
         Object.entries(effects.equipment).forEach(([key, updates]) => {
@@ -1772,7 +1774,7 @@ function applyEffects(effects) {
         });
         renderEquipment();
     }
-    
+
     // Apply inventory changes
     if (effects.inventory) {
         Object.entries(effects.inventory).forEach(([key, updates]) => {
@@ -1785,15 +1787,15 @@ function applyEffects(effects) {
     }
 }
 
-function storeDelayedEffect(delayedEffect, effectId) {
+function storeActiveEffect(activeEffect, effectId) {
     if (!gameState.activeEffects) {
         gameState.activeEffects = [];
     }
-    
+
     gameState.activeEffects.push({
         id: effectId,
-        effects: delayedEffect,
-        daysRemaining: delayedEffect.daysDelay
+        effects: activeEffect,
+        daysRemaining: activeEffect.days
     });
 }
 
@@ -1817,42 +1819,36 @@ function handleCrisisChoice(option) {
         applyEffects(option.immediate);
     }
 
-    // Store delayed effects if any
+    // Store active effects if any
     if (option.delayed && Object.keys(option.delayed).length > 0) {
-        storeDelayedEffect(option.delayed, option.id);
+        storeActiveEffect(option.delayed, option.id);
     }
 
     // Show Gill's educational message 
-    if (option.gillMessage && option.gillMessage.trim()) {
-
-        showGillMessage(option.gillMessage);
-
+    if (option.gillMessage) {
+        openGillCrisis(option.gillMessage);
     }
 }
 
-function processDelayedEffects() {
+function processActiveEffects() {
     if (!gameState.activeEffects || gameState.activeEffects.length === 0) {
         return;
     }
-    
-    const effectsToApply = [];
+
     const remainingEffects = [];
-    
+
     gameState.activeEffects.forEach(effect => {
-        effect.daysRemaining -= 1;
-        
-        if (effect.daysRemaining <= 0) {
-            effectsToApply.push(effect.effects);
-        } else {
+        if (effect.daysRemaining > 0) {
+            applyEffects(effect.effects);
+            effect.daysRemaining -= 1;
+        }
+
+        if (effect.daysRemaining > 0) {
             remainingEffects.push(effect);
         }
     });
-    
+
     gameState.activeEffects = remainingEffects;
-    
-    effectsToApply.forEach(effects => {
-        applyEffects(effects);
-    });
 }
 
 
