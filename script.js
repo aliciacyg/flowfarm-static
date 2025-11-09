@@ -84,14 +84,14 @@ const gameState = {
         {
             key: 'ammonia',
             label: 'Ammonia (NH₃)',
-            value: 0.4,
+            value: 0.1,
             unit: 'ppm',
-            safeRangeDisplay: '0-0.5 ppm',
+            safeRangeDisplay: '0-0.25 ppm',
             minValue: 0,
             maxValue: 2,
             ranges: {
-                safe: [0, 0.5],
-                warning: [0.6, 1.0]
+                safe: [0, 0.25],
+                warning: [0.26, 0.4]
                 // Outside set ranges is danger
             }
         },
@@ -230,42 +230,48 @@ const gameState = {
                 key: 'fish-feed',
                 icon: '🫘',
                 name: 'Fish Feed',
-                quantityLabel: '500g remaining',
+                quantity: 100,
+                unit: 'g',
                 description: 'Standard pellet feed for goldfish and tilapia'
             },
             {
                 key: 'calcium-carbonate',
                 icon: '🧪',
                 name: 'Calcium Carbonate',
-                quantityLabel: '500g',
+                quantity: 100,
+                unit: 'g',
                 description: 'Slowly raises pH over several days'
             },
             {
                 key: 'phosphoric-acid',
                 icon: '🧪',
                 name: 'Phosphoric Acid',
-                quantityLabel: '100mL',
+                quantity: 100,
+                unit: 'mL',
                 description: 'Lowers pH when levels are too high'
             },
             {
                 key: 'probiotic-supplement',
                 icon: '🧪',
                 name: 'Probiotic Supplement',
-                quantityLabel: '3 doses',
+                quantity: 3,
+                unit: 'doses',
                 description: 'Helps establish nitrogen cycle and break down waste'
             },
             {
                 key: 'aquarium-salt',
                 icon: '🐟',
                 name: 'Aquarium Salt',
-                quantityLabel: '1kg',
+                quantity: 1,
+                unit: 'kg',
                 description: 'Used for treating fish diseases (harmful to plants)'
             },
             {
                 key: 'iron-supplement',
                 icon: '🌱',
                 name: 'Iron Supplement',
-                quantityLabel: '200mL',
+                quantity: 200,
+                unit: 'mL',
                 description: 'Prevents iron deficiency in plants'
             }
         ],
@@ -331,11 +337,14 @@ const crisisEventsByDay = {
         options: [
             {
                 id: 'calcium-carbonate-choice',
-                label: 'Add Calcium Carbonate (- $15)',
+                label: 'Add Calcium Carbonate (30g - You have enough)',
                 description: 'This will slowly buffer the pH up over a few days',
-                cost: 15,
+                cost: 0,
                 immediate: {
-                    waterStats: { ph: -0.8 }
+                    waterStats: { ph: -0.8 },
+                    consumables: {
+                        'calcium-carbonate': { quantity: 70 }
+                    }
                 },
                 delayed: {
                     waterStats: { ph: 0.3 },
@@ -344,26 +353,42 @@ const crisisEventsByDay = {
                 gillMessage: [`Wise choice! Calcium carbonate acts slowly, so it won't shock the fish.`,
                     `Going forward, the water chemistry will be less prone to sudden pH swings too, thanks to the buffering effect.`,
                     `Plus, calcium is a nutrient that both plants and fish need for healthy growth.`,
-                    `All around, this was probably the best decision you could have made.`
+                    `All around, this was probably the best decision you could have made for a sudden pH drop.`
                 ]
             },
             {
                 id: 'baking-soda-choice (sodium bicarbonate)',
-                label: 'Add Baking Soda (- $10)',
+                label: 'Add Baking Soda (- $5)',
                 description: 'Quick fix. Will not last, and could stress the fish if overused.',
-                cost: 10,
-                immediate: {},
+                cost: 5,
+                immediate: { fish: { healthChange: -20 } },
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Aha! Baking soda! Cheap and effective base to quickly raise pH levels.',
+                    'That\'s exactly the problem with it. It is quick, and that\'s really stressful for us fish.',
+                    'We rely on stable pH for healthy breathing. This kind of stuff weakens our immune system and leaves us vulnerable to disease.',
+                    'Also, baking soda adds sodium to the water, which isn\'t great for plants in high amounts.',
+                    'Anyway, don\'t worry too much. Things still have time to stabilize, and you\'re still learning. '
+                ]
             },
             {
                 id: 'sell-fish-choice',
                 label: 'Sell Half Your Fish (+ $30)',
                 description: 'Reduces bioload and acid production. Will also lower nutrient levels for plants.',
                 cost: -30,
-                immediate: {},
-                delayed: {},
-                gillMessage: ``
+                immediate:
+                {
+                    fish: { removePercent: 0.5 },
+                    waterStats: { ph: -0.8 },
+                    plants: { harvestChange: 2 }
+                },
+                delayed: {
+                    days: 3,
+                    waterStats: { ph: 0.3 },
+                },
+                gillMessage: [`Fish will produce acid through their waste, so going forward, your pH should stabilize.`,
+                    `However, with fewer fish, there will be less nutrients available for your plants.`,
+                    `Plus, the point of aquaponics is to raise plants AND fish!`
+                ]
             },
             {
                 id: 'wait-and-monitor-choice',
@@ -372,7 +397,11 @@ const crisisEventsByDay = {
                 cost: 0,
                 immediate: {},
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Oh no... This is not a good idea.',
+                    'The thing is, low pH is not a problem that resolves itself, regardless of cause. You need to troubleshoot and take action.',
+                    'I will fix it for you this time.',
+                    'Try to be more thoughtful next time :('
+                ]
             }
         ]
     },
@@ -382,29 +411,45 @@ const crisisEventsByDay = {
         options: [
             {
                 id: 'water-change-choice',
-                label: 'Perform 50% Water Change (- $10)',
+                label: 'Perform 50% Water Change (- $1)',
                 description: 'Dilutes ammonia concentration quickly, but stressful for fish.',
-                cost: 10,
-                immediate: {},
+                cost: 1,
+                immediate: {
+                    fish: { healthChange: -5 },
+                },
                 delayed: {},
-                gillMessage: `Explain what dilution means and why it helps.`
+                gillMessage: ['Good choice! A partial water change is one of the fastest ways to reduce ammonia.',
+                    'The stress to your fish is temporary, but high ammonia can be deadly.',
+                    'In the future, be careful not to overfeed - uneaten food and fish waste are the main sources of ammonia in aquaponics systems.']
             },
             {
                 id: 'add-beneficial-bacteria-choice',
-                label: 'Add Beneficial Bacteria (- $25)',
+                label: 'Add Probiotic Supplement (- 1 dose - You have enough)',
                 description: 'Helps break down ammonia and improve water quality over time.',
-                cost: 25,
-                immediate: {},
-                delayed: {},
-                gillMessage: `Beneficial bacteria help convert harmful ammonia into less toxic substances.`
+                cost: 0,
+                immediate: {
+                    consumables: { 'probiotic-supplement': { quantity: 2 } },
+                    waterStats: { ammonia: 0.1 }
+                },
+                delayed: {
+                    days: 3,
+                    effects: { waterStats: { ammonia: -0.2 } }
+                },
+                gillMessage: ['Nice! Probiotic supplements introduce beneficial bacteria that help convert harmful ammonia into nitrates.',
+                    'This process, called nitrification, is essential for maintaining a healthy aquaponics system.',
+                    'Once you have a stable colony of these bacteria, ammonia levels will stay in check naturally.',
+                    'This was the best choice you could have made, especially since this is a new system. Good job!']
             },
             {
                 id: 'skip-feeding-choice',
                 label: 'Skip Feeding',
                 description: 'Avoid adding more ammonia by not feeding the fish for a couple of days. Slow recovery.',
                 cost: 0,
-                immediate: {},
-                delayed: {},
+                immediate: { waterStats: { ammonia: 0.4 } },
+                delayed: {
+                    days: 4,
+                    effects: { waterStats: { ammonia: -0.05 } }
+                },
                 gillMessage: ``
             }
         ]
@@ -1493,7 +1538,7 @@ function renderConsumables() {
 
         const quantity = document.createElement('span');
         quantity.className = 'item-quantity';
-        quantity.textContent = item.quantityLabel;
+        quantity.textContent = `${item.quantity} ${item.unit}`;
 
         header.appendChild(name);
         header.appendChild(quantity);
@@ -1690,8 +1735,17 @@ function renderCrisisOptions(options) {
         const button = document.createElement('button');
         button.className = 'crisis-option';
 
-        let label = option.label;
-        button.textContent = label;
+        const label = document.createElement('span');
+        label.className = 'crisis-option-label';
+        label.textContent = option.label || 'Select';
+        button.appendChild(label);
+
+        if (option.description) {
+            const description = document.createElement('span');
+            description.className = 'crisis-option-description';
+            description.textContent = option.description;
+            button.appendChild(description);
+        }
 
         button.addEventListener('click', () => {
             handleCrisisChoice(option);
@@ -1790,8 +1844,8 @@ function applyEffects(effects) {
     }
 
     // Apply inventory changes
-    if (effects.inventory) {
-        Object.entries(effects.inventory).forEach(([key, updates]) => {
+    if (effects.consumables) {
+        Object.entries(effects.consumables).forEach(([key, updates]) => {
             const item = gameState.inventory.consumables.find(i => i.key === key);
             if (item && updates) {
                 Object.assign(item, updates);
@@ -1949,6 +2003,8 @@ applyFilterMaintenanceRules();
 if (gameState.day === 1) {
     openGill(1);
 }
+
+// If fish feed goes to zero, Gill refills it for free
 
 if (typeof window !== 'undefined') {
     window.setBalance = setBalance;

@@ -498,11 +498,28 @@ button.primary:hover {
     flex-direction: column;
     gap: 12px;
     margin-top: 20px;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 6px;
 }
 
 .crisis-option {
     text-align: left;
     font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.crisis-option-label {
+    font-weight: 600;
+}
+
+.crisis-option-description {
+    font-weight: normal;
+    font-size: 13px;
+    color: #444;
 }
 
 .inventory-item {
