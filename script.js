@@ -2004,7 +2004,7 @@ if (gameState.day === 1) {
     openGill(1);
 }
 
-// If fish feed goes to zero, Gill refills it for free
+// TODO: If fish feed goes to zero, Gill refills it for free
 
 if (typeof window !== 'undefined') {
     window.setBalance = setBalance;
