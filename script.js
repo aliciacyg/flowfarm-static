@@ -166,7 +166,7 @@ const gameState = {
             key: 'lettuce',
             icon: '🥬',
             name: 'Lettuce',
-            quantity: 5,
+            quantity: 4,
             daysToHarvest: 8
         },
         {
@@ -180,14 +180,14 @@ const gameState = {
             key: 'basil',
             icon: '🌿',
             name: 'Basil',
-            quantity: 2,
+            quantity: 0,
             daysToHarvest: 0
         },
         {
             key: 'strawberry',
             icon: '🍓',
             name: 'Strawberry',
-            quantity: 5,
+            quantity: 3,
             daysToHarvest: 14
         }
     ],
@@ -338,7 +338,7 @@ const crisisEventsByDay = {
                     waterStats: { ph: -0.8 }
                 },
                 delayed: {
-                    waterStats: { ph: 0.6 },
+                    waterStats: { ph: 0.3 },
                     days: 3
                 },
                 gillMessage: [`Wise choice! Calcium carbonate acts slowly, so it won't shock the fish.`,
@@ -1227,12 +1227,26 @@ function advanceDay() {
     // Increment day
     gameState.day += 1;
 
+    // Age plants and fish as the day advances
+    gameState.plants.forEach((plant) => {
+        if (typeof plant.daysToHarvest === 'number') {
+            plant.daysToHarvest = Math.max(0, plant.daysToHarvest - 1);
+        }
+    });
+    gameState.fish.forEach((fish) => {
+        if (typeof fish.age === 'number') {
+            fish.age += 1;
+        }
+    });
+
     // Create transition effect
     createDayTransition();
 
     // Update display after brief delay to sync with transition
     setTimeout(() => {
         updateDayDisplay();
+        renderPlants();
+        renderFish();
         processActiveEffects();
         applyFilterMaintenanceRules();
 
