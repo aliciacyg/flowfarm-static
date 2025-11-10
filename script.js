@@ -581,7 +581,7 @@ const crisisEventsByDay = {
                     'All that fizzy oxygen is stressful for the fish too, but luckily goldfish and tilapia are a bit hardier than average fish.',
                     'The peroxide breaks down in a day or two, so it\'s not permanent damage, but the water stats might be a bit unstable in your system for a few days while the good bacteria bounce back.',
                     'This is why some folks just yank out the sick plants instead. A small cost, but no risks.',
-                    'TIt is very important to ensure good water circulation in an aquaponics system. These pathogens thrive in stagnant water.'
+                    'It is very important to ensure good water circulation in an aquaponics system. These pathogens thrive in stagnant water.'
                 ]
             }
         ]
