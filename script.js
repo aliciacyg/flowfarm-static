@@ -34,8 +34,17 @@ const requestCompleteRewardsEl = document.getElementById('request-complete-rewar
 const requestCompleteCloseButton = document.getElementById('request-complete-close-btn');
 const requestCompleteOkButton = document.getElementById('request-complete-ok-btn');
 const systemWarningButton = document.getElementById('system-warning-btn');
+const tankPlaceholderEl = document.querySelector('.tank-placeholder');
+let feedFishButtonEl = null;
+let feedFishButtonResetTimer = null;
 
 const DEFAULT_STARTING_BALANCE = 500;
+const FISH_FEED_CONSUMPTION_AMOUNT = 150;
+const FISH_FEED_REFILL_AMOUNT = 5000;
+const GILL_FEED_REFILL_MESSAGES = [
+    'Looks like you\'ve been feeding your fish well! Now you are out of food.',
+    'Normally you\'d have to buy more, but for this month, it\'s on me.'
+];
 
 const communityRequests = [
     {
@@ -189,7 +198,7 @@ const gameState = {
         {
             key: 'goldfish-1',
             icon: '🐟',
-            name: 'Goldfish #1',
+            name: 'Goldfish Group #1',
             species: 'Common Goldfish',
             size: 5,
             age: 120,
@@ -197,29 +206,9 @@ const gameState = {
             healthLabel: 'Healthy'
         },
         {
-            key: 'goldfish-2',
-            icon: '🐟',
-            name: 'Goldfish #2',
-            species: 'Common Goldfish',
-            size: 6,
-            age: 90,
-            healthPercent: 85,
-            healthLabel: 'Healthy'
-        },
-        {
-            key: 'goldfish-3',
-            icon: '🐟',
-            name: 'Goldfish #3',
-            species: 'Common Goldfish',
-            size: 4,
-            age: 90,
-            healthPercent: 90,
-            healthLabel: 'Healthy'
-        },
-        {
             key: 'tilapia-1',
             icon: '🐠',
-            name: 'Tilapia #1',
+            name: 'Tilapia Group #1',
             species: 'Nile Tilapia',
             size: 9,
             age: 30,
@@ -227,9 +216,19 @@ const gameState = {
             healthLabel: '',
         },
         {
+            key: 'goldfish-2',
+            icon: '🐟',
+            name: 'Goldfish Group #2',
+            species: 'Common Goldfish',
+            size: 6,
+            age: 90,
+            healthPercent: 85,
+            healthLabel: 'Healthy'
+        },
+        {
             key: 'tilapia-2',
             icon: '🐠',
-            name: 'Tilapia #2',
+            name: 'Tilapia Group #2',
             species: 'Nile Tilapia',
             size: 7,
             age: 35,
@@ -237,9 +236,20 @@ const gameState = {
             healthLabel: '',
         },
         {
+            key: 'goldfish-3',
+            icon: '🐟',
+            name: 'Goldfish Group #3',
+            species: 'Common Goldfish',
+            size: 4,
+            age: 90,
+            healthPercent: 90,
+            healthLabel: 'Healthy'
+        },
+
+        {
             key: 'tilapia-3',
             icon: '🐠',
-            name: 'Tilapia #3',
+            name: 'Tilapia Group #3',
             species: 'Nile Tilapia',
             size: 12,
             age: 42,
@@ -253,7 +263,7 @@ const gameState = {
                 key: 'fish-feed',
                 icon: '🫘',
                 name: 'Fish Feed',
-                quantity: 100,
+                quantity: 250,
                 unit: 'g',
                 description: 'Standard pellet feed for goldfish and tilapia'
             },
@@ -1831,6 +1841,177 @@ function harvestPlant(plantKey) {
     renderHarvest();
     updateRequestCompletionButtonState();
 }
+
+// -------------------------------------------------------------------------
+// Tank interactions (feeding)
+//
+//
+function initializeTankFeedInteraction() {
+    if (!tankPlaceholderEl || feedFishButtonEl) {
+        return;
+    }
+
+    feedFishButtonEl = document.createElement('button');
+    feedFishButtonEl.type = 'button';
+    feedFishButtonEl.className = 'feed-fish-button';
+    feedFishButtonEl.textContent = 'feed fish';
+    feedFishButtonEl.setAttribute('aria-label', 'Feed fish');
+    tankPlaceholderEl.appendChild(feedFishButtonEl);
+
+    hideFeedFishButton();
+
+    tankPlaceholderEl.addEventListener('click', handleTankPlaceholderClick);
+    feedFishButtonEl.addEventListener('click', handleFeedFishButtonClick);
+    document.addEventListener('click', handleClickOutsideTank);
+}
+
+function handleTankPlaceholderClick(event) {
+    if (!tankPlaceholderEl || !feedFishButtonEl || feedFishButtonEl.contains(event.target)) {
+        return;
+    }
+
+    const rect = tankPlaceholderEl.getBoundingClientRect();
+    const relativeX = event.clientX - rect.left;
+    const relativeY = event.clientY - rect.top;
+    const isLeftHalf = relativeX <= rect.width / 2;
+
+    if (!isLeftHalf) {
+        hideFeedFishButton();
+        return;
+    }
+
+    showFeedFishButton(relativeX, relativeY);
+}
+
+function handleClickOutsideTank(event) {
+    if (!tankPlaceholderEl || (event.target && tankPlaceholderEl.contains(event.target))) {
+        return;
+    }
+    hideFeedFishButton();
+}
+
+function showFeedFishButton(relativeX, relativeY) {
+    if (!tankPlaceholderEl || !feedFishButtonEl) {
+        return;
+    }
+
+    resetFeedFishButtonState();
+
+    const rect = tankPlaceholderEl.getBoundingClientRect();
+    const padding = 36;
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const x = clamp(relativeX, padding, rect.width - padding);
+    const y = clamp(relativeY, padding, rect.height - padding);
+
+    feedFishButtonEl.style.left = `${x}px`;
+    feedFishButtonEl.style.top = `${y}px`;
+    feedFishButtonEl.classList.add('visible');
+}
+
+function hideFeedFishButton() {
+    if (!feedFishButtonEl) {
+        return;
+    }
+
+    resetFeedFishButtonState();
+    feedFishButtonEl.classList.remove('visible', 'success', 'error');
+}
+
+function handleFeedFishButtonClick(event) {
+    if (!feedFishButtonEl) {
+        return;
+    }
+
+    event.stopPropagation();
+    feedFishButtonEl.disabled = true;
+    feedFishButtonEl.classList.remove('success', 'error');
+
+    const success = consumeFishFeed(FISH_FEED_CONSUMPTION_AMOUNT);
+
+    if (success) {
+        feedFishButtonEl.classList.add('success');
+        feedFishButtonEl.textContent = 'Fed!';
+        scheduleFeedButtonReset(() => {
+            hideFeedFishButton();
+        }, 900);
+    } else {
+        feedFishButtonEl.classList.add('error');
+        feedFishButtonEl.textContent = 'No Feed';
+        scheduleFeedButtonReset(() => {
+            resetFeedFishButtonState();
+            feedFishButtonEl.classList.remove('visible');
+        }, 1300);
+    }
+}
+
+function scheduleFeedButtonReset(callback, delay) {
+    if (feedFishButtonResetTimer) {
+        clearTimeout(feedFishButtonResetTimer);
+    }
+    const timerFn = typeof window !== 'undefined' ? window.setTimeout : setTimeout;
+    feedFishButtonResetTimer = timerFn(() => {
+        callback();
+        feedFishButtonResetTimer = null;
+    }, delay);
+}
+
+function resetFeedFishButtonState() {
+    if (!feedFishButtonEl) {
+        return;
+    }
+
+    if (feedFishButtonResetTimer) {
+        clearTimeout(feedFishButtonResetTimer);
+        feedFishButtonResetTimer = null;
+    }
+
+    feedFishButtonEl.disabled = false;
+    feedFishButtonEl.textContent = 'feed fish';
+    feedFishButtonEl.classList.remove('success', 'error');
+}
+
+function consumeFishFeed(amount) {
+    if (!gameState || !gameState.inventory || !Array.isArray(gameState.inventory.consumables)) {
+        return false;
+    }
+
+    const feedItem = gameState.inventory.consumables.find(item => item.key === 'fish-feed');
+    if (!feedItem) {
+        return false;
+    }
+
+    if (feedItem.quantity <= 0) {
+        triggerFishFeedRefill(feedItem);
+        return false;
+    }
+
+    const consumption = Math.min(amount, feedItem.quantity);
+    feedItem.quantity -= consumption;
+    renderConsumables();
+
+    if (feedItem.quantity <= 0) {
+        triggerFishFeedRefill(feedItem);
+    }
+
+    return consumption === amount;
+}
+
+function triggerFishFeedRefill(feedItem) {
+    if (!feedItem) {
+        return;
+    }
+
+    const shouldRefill = feedItem.quantity <= 0;
+    if (!shouldRefill) {
+        return;
+    }
+
+    feedItem.quantity = FISH_FEED_REFILL_AMOUNT;
+    renderConsumables();
+    if (typeof openGillCrisis === 'function') {
+        openGillCrisis(GILL_FEED_REFILL_MESSAGES);
+    }
+}
 // -------------------------------------------------------------------------
 
 
@@ -2144,6 +2325,8 @@ document.getElementById('inventory-popup').addEventListener('click', function (e
 // Button handlers
 //
 //
+initializeTankFeedInteraction();
+
 if (fastForwardButton) {
     fastForwardButton.addEventListener('click', advanceDay);
 }
@@ -2193,7 +2376,7 @@ if (gameState.day === 1) {
     openGill(1);
 }
 
-// TODO: If fish feed goes to zero, Gill refills it for free
+// TODO: If fish feed goes to zero, Gill refills it for free, and tells user about it
 
 if (typeof window !== 'undefined') {
     window.setBalance = setBalance;
