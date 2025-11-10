@@ -696,8 +696,9 @@ const gillMessagesByDay = {
     1: [
         `Hey there! I'm Gill. I'm here to guide you through your aquaponics journey.`,
         `Aquaponics is all about teamwork: fish provide nutrients for plants, and plants clean the water for fish.`,
-        `For now, you're going to be in charge of this small deep-water culture tank. You can learn more about the details of these aquaponics terms in help tab in your own time (stretch feature). Right now, let's talk about running your system.`,
+        `For now, you're going to be in charge of this small deep-water culture tank. You can learn more about the details of these aquaponics terms in help tab in your own time. Right now, let's talk about running your system.`,
         `Most days, you don't have to do much. Just do these three things daily: feed the fish, check your water stats, and the health of your fish and plants.`,
+        `To feed the fish, just click on the tank. Everything else can be done using the buttons.`,
         `Sometimes, unexpected things happen. Aquaponics systems can be sensitive and involve trial and error. Don't worry and believe in yourself!`,
         `That's all for now. I'll check in again tomorrow. Explore a bit, and have fun!`
     ],
@@ -705,13 +706,17 @@ const gillMessagesByDay = {
         `See? Pretty easy, right? Just a few simple tasks each day to keep your aquaponics system running smoothly.`,
         `Most days are going to be like this. But every so often, something unexpected might happen.`,
     ],
+    3: [
+        `Have you checked out the community board yet? It can feel really fulfilling to help out a fellow neighbor.`,
+        `Plus, sometimes they give really good gifts as thanks!`
+    ],
     7: [
         `Have you taken a look at your equipment lately?`,
         `Some pieces of equipment need regular maintenance to keep them functioning properly.`,
         `For example, your filter needs to be cleaned periodically to prevent clogs and maintain good water quality.`,
         `Don't forget to check on your filter once a week, just to make sure it's in good shape!`
     ],
-    30: [
+    31: [
         'You have made it to the end of the demo! Congratulations and thank you for playing!',
         'Don\'t forget to fill in the post-demo questionnaire provided by the students. Your input helps more than you know!',
         'It was a joy to help you through this little aquaponics journey. Take care!'
@@ -1460,6 +1465,33 @@ function updateDayDisplay() {
     if (dateDisplay) {
         dateDisplay.textContent = `Day ${gameState.day}`;
     }
+    updateTankImage();
+}
+
+function getTankImageForDay(day) {
+    if (day >= 20) {
+        return 'harvestplantsbigmanyfish.jpg';
+    }
+    if (day >= 15) {
+        return 'smallplantssmallmanyfish.jpg';
+    }
+    return 'smallplantssmallfewfish.jpg';
+}
+
+function updateTankImage() {
+    if (!tankPlaceholderEl) {
+        return;
+    }
+
+    const tankImageEl = tankPlaceholderEl.querySelector('img');
+    if (!tankImageEl) {
+        return;
+    }
+
+    const targetSrc = getTankImageForDay(gameState.day);
+    if (tankImageEl.getAttribute('src') !== targetSrc) {
+        tankImageEl.setAttribute('src', targetSrc);
+    }
 }
 
 // Balance management
@@ -1854,7 +1886,7 @@ function initializeTankFeedInteraction() {
     feedFishButtonEl = document.createElement('button');
     feedFishButtonEl.type = 'button';
     feedFishButtonEl.className = 'feed-fish-button';
-    feedFishButtonEl.textContent = 'feed fish';
+    feedFishButtonEl.textContent = 'Feed fish';
     feedFishButtonEl.setAttribute('aria-label', 'Feed fish');
     tankPlaceholderEl.appendChild(feedFishButtonEl);
 

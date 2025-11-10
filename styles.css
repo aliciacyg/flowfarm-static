@@ -852,3 +852,67 @@ button.primary:hover {
 .stat-update-pulse {
     animation: stat-update-pulse 500ms ease-in-out;
 }
+
+/* Off-screen Glossary Panel */
+.glossary-panel {
+    position: fixed;
+    top: 50%;
+    right: 0px;
+    width: 150px;
+    transform: translateY(-50%);
+    background: #ffffff;
+    border: 3px solid #333;
+    border-radius: 18px 0 0 18px;
+    padding: 56px 18px 18px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    z-index: 400;
+}
+
+.glossary-panel-handle {
+    position: absolute;
+    left: -30px;
+    top: 130px;
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    background: #333;
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 12px 12px 0 0;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.glossary-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.glossary-panel-note {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.glossary-terms {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.glossary-term-btn {
+    text-align: left;
+    padding: 10px 14px;
+    border: 2px dashed #4CAF50;
+    border-radius: 10px;
+    background: #f7fff7;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.glossary-term-btn:hover {
+    background: #e9fbe9;
+}
