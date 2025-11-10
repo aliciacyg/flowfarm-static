@@ -437,21 +437,29 @@ const crisisEventsByDay = {
                 gillMessage: ['Nice! Probiotic supplements introduce beneficial bacteria that help convert harmful ammonia into nitrates.',
                     'This process, called nitrification, is essential for maintaining a healthy aquaponics system.',
                     'Once you have a stable colony of these bacteria, ammonia levels will stay in check naturally.',
-                    'This was the best choice you could have made, especially since this is a new system. Good job!']
+                    'This was the best choice you could have made, especially since this is a new system. Good job!',
+                    'In the future, be careful not to overfeed - uneaten food and fish waste are the main sources of ammonia in aquaponics systems.']
             },
             {
                 id: 'skip-feeding-choice',
                 label: 'Skip Feeding',
                 description: 'Avoid adding more ammonia by not feeding the fish for a couple of days. Slow recovery.',
                 cost: 0,
-                immediate: { waterStats: { ammonia: 0.4 } },
+                immediate: {
+                    waterStats: { ammonia: 0.4 },
+                    fish: { healthChange: -10 }
+                },
                 delayed: {
                     days: 4,
-                    effects: { waterStats: { ammonia: -0.05 } }
+                    effects: {
+                        waterStats: { ammonia: -0.05 },
+                        fish: { healthChange: 3 }
+                    }
                 },
                 gillMessage: ['Smart thinking. Ammmonia is produced for fish waste and uneaten food. By not feeding, you\'re preventing further ammonia buildup.',
                     'Fish can handle a few days of fasting. The bacteria in your system will eventually transform the ammonia into nitrates, which the plants will consume.',
-                    'The fish will stay stressed while the ammonia levels are up, but things will settle down over the next few days.'
+                    'The fish will stay stressed while the ammonia levels are up, but things will settle down over the next few days.',
+                    'In the future, be careful not to overfeed - uneaten food and fish waste are the main sources of ammonia in aquaponics systems.'
                 ]
             }
         ]
@@ -465,27 +473,33 @@ const crisisEventsByDay = {
                 label: 'Use Manual Aeration (- $30)',
                 description: 'Add a second battery-powered air pump to increase oxygen levels temporarily.',
                 cost: 30,
-                immediate: {},
+                immediate: { fish: { healthChange: 5 } },
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Good save! Fish rely on dissolved oxygen to breathe. They will really appreciate the boost.',
+                    'Let\'s hope we don\'t get another power outage like this again soon...'
+                ]
             },
             {
                 id: 'backup-generator-choice',
-                label: 'Buy a Backup Generator (- $150)',
+                label: 'Buy a Backup Generator (- $200)',
                 description: 'Prevents future issues.',
                 cost: 150,
                 immediate: {},
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Thank goodness the outage only lasted 6 hours. That should not have done too much damage.',
+                    'When the power goes out, the pumps stop running. Water goes stagnant and it starts losing oxygen. The plants can handle this, but the fish can\'t.',
+                    'Buying a backup generator is a really good idea. We\'ll never have to worry about anything like this every again!',
+                    'Well... at least as long as the equipment stays functional...'
+                ]
             },
             {
                 id: 'do-nothing-power-choice',
                 label: 'Do Nothing',
                 description: 'Chance of losing 10-20% of fish due to low oxygen.',
                 cost: 0,
-                immediate: {},
+                immediate: { fish: { healthChange: -2 } },
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Thank goodness the outage only lasted 6 hours. That should not have done too much damage.']
             }
         ]
     },
@@ -496,20 +510,35 @@ const crisisEventsByDay = {
             {
                 id: 'remove-affected-plants-choice',
                 label: 'Remove Affected Plants (- $0)',
-                description: 'Lose 5 plants but save the system.',
+                description: 'Lose 3 plants but save the system.',
                 cost: 0,
-                immediate: {},
+                immediate: { plants: { removeCount: 3 } },
                 delayed: {},
-                gillMessage: `Description about how diseases spread in plants`
+                gillMessage: ['Sometimes, pruning sick plants can prevent bigger losses later.',
+                    'This is because root rot is caused by pathogens that can travel through water.',
+                    'By removing the sick plants, you are removing the source of the pathogens.',
+                    'This gives the healthy bacteria of your system a chance to regain dominance.',
+                    'This is why it is very important to ensure good water circulation in an aquaponics system. These pathogens thrive in stagnant water.',
+                    'We caught it early this time, so the damage was minimal. Good job!'
+                ]
             },
             {
                 id: 'hydrogen-peroxide-choice',
-                label: 'Treat with Hydrogen Peroxide (- $20)',
+                label: 'Treat with Hydrogen Peroxide (- $2)',
                 description: 'May save some plants, but will stress the fish',
-                cost: 20,
-                immediate: {},
-                delayed: {},
-                gillMessage: ``
+                cost: 2,
+                immediate: { fish: { healthChange: -3 } },
+                delayed: {
+                    days: 1,
+                    fish: { healthChange: -2 }
+                },
+                gillMessage: ['It\'s a good thing we have hardy fish in the tank!',
+                    'Hydrogen peroxide treatment is kind of like a double-edged sword. It kills pretty much everything in the water, so it will take care of the root rot, but also kill the good nitrifying bacteria.',
+                    'All that fizzy oxygen is stressful for the fish too, but luckily goldfish and tilapia are a bit hardier than average fish.',
+                    'The peroxide breaks down in a day or two, so it\'s not permanent damage, but the water stats might be a bit unstable in your system for a few days while the good bacteria bounce back.',
+                    'This is why some folks just yank out the sick plants instead. A small cost, but no risks.',
+                    'TIt is very important to ensure good water circulation in an aquaponics system. These pathogens thrive in stagnant water.'
+                ]
             }
         ]
     },
@@ -522,51 +551,75 @@ const crisisEventsByDay = {
                 label: 'Quarantine Affected Fish',
                 description: 'Lose the sick fish but save the rest.',
                 cost: 0,
-                immediate: {},
+                immediate: { fish: { removePercent: 0.2 } },
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Ugh, ich. Those poor fish are full of parasites. Quarantining them will stop the spread.',
+                    'I hope we have enough to continue maintaining the system though. Fish are essential to an aquaponics system. The whole cycle falls apart without them.',
+                    'The plants wont die, but... this isn\'t hydroponics! It\'s AQUAponics! We need fish!'
+                ]
             },
             {
                 id: 'aquarine-salt-choice',
                 label: 'Treat with Aquarium Salt (- $25)',
                 description: 'Cures the fish, but might kill some plants.',
                 cost: 25,
-                immediate: {},
-                delayed: {},
-                gillMessage: ``
+                immediate: {
+                    fish: {healthChange: 5},
+                    plants: {removePercent: 0.1}
+                },
+                delayed: {
+                    days: 3,
+                    waterStats: {ammonia: 0.05}
+                },
+                gillMessage: ['Well, that certainly will cure the ich! An increase in salt creates osmotic pressure that causes the parasites to burst and die.',
+                    'The problem is, plants hate salt. These crops did not evolve to handle salty water, so even a little can damage the roots.',
+                    'This was a tough choice. I am sorry for your loss.'
+                ]
             },
             {
                 id: 'raise-temperature-choice',
                 label: 'Raise Temperature Gradually to 82-86°F ',
                 description: 'Mr. Chen\'s gift is coming in handy! This will cure the fish, but stress the plants slightly.',
                 cost: 0,
-                immediate: {},
-                delayed: {},
-                gillMessage: ``
+                immediate: {waterStats: {temperature: 2}
+                },
+                delayed: {days: 6,
+                    waterStats: {temperature: 2}
+                },
+                gillMessage: ['Fun fact: ich parasites HATE warm water! Slowly increasing the temperature speeds up their life cycle, which just means they will die faster without getting the chance to reproduce.',
+                    'The plants might grow slower because they prefer cooler water, but they will survive.',
+                    'The air pump is going to have to work extra hard to keep oxygen levels high too, because oxygen doesn\'t stay dissolved in warm water very well.',
+                    'Way better than dumping salt in the water though. THAT, your plants would not have survived. So good job!'
+                ]
             },
             {
                 id: 'do-nothing-disease-choice',
                 label: 'Do Nothing',
                 description: 'Chance of losing 50-70% of fish stock due to disease. Plants stay healthy.',
                 cost: 0,
-                immediate: {},
+                immediate: { fish: { removePercent: 0.6 } },
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Sadly, ich is not like a cold. It does not go away on its own. It is a parasite that will continue mutliplying and infecting.',
+                    'This parasite risks killing your entire tank of fish very quickly. Then those dead fish will spike the ammonia levels, which might kill your plants',
+                    'This was a very bad decision. I am disappointed. I cannot just let my friends stay sick and die. I will cure them for you.'
+                ]
             }
         ]
     },
     30: {
         title: '⚠️ Crisis Event: Pest Infestation!',
-        description: 'Aphids have appeared on your plants and are multiplying rapidly.',
+        description: 'Small black bugs called aphids have appeared on your plants. They are damaging them and multiplying rapidly.',
         options: [
             {
                 id: 'introduce-ladybugs-choice',
-                label: 'Introduce Ladybugs (- $40)',
-                description: 'Organic pest control. Safe for plants and fish. Will take 3 days. Some plants may be damaged in the meantime.',
-                cost: 40,
+                label: 'Introduce Ladybugs (- $30)',
+                description: 'Organic pest control. Safe for plants and fish.',
+                cost: 30,
                 immediate: {},
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Ah ladybugs! I think you picked the best choice here. This will singlehandedly anhiliate those little creatures. Ladybugs are great hunters, and they always come hungry.',
+                    'They will help preevnt future infestations too, so great choice!'
+                ]
             },
             {
                 id: 'manual-removal-choice',
@@ -575,7 +628,9 @@ const crisisEventsByDay = {
                 cost: 0,
                 immediate: {},
                 delayed: {},
-                gillMessage: `This would not be free or convenient with a larger system`
+                gillMessage: ['Well, you certainly got the job done! That was tiring though, was it not? Carefully removing those aphids plant-by-plant',
+                    'It worked fine for now, but this would not be very efficient for a larger system or infestatation.'
+                ]
             },
             {
                 id: 'remove-infected-plants-choice',
@@ -584,7 +639,7 @@ const crisisEventsByDay = {
                 cost: 0,
                 immediate: {},
                 delayed: {},
-                gillMessage: ``
+                gillMessage: ['Wellm you certainly got rid of the aphids. Completely removing the plants was a bit rash, though. Aphids are very easy to get rid of with a bit of delicacy.']
             }
         ]
     }
@@ -609,7 +664,12 @@ const gillMessagesByDay = {
         `Some pieces of equipment need regular maintenance to keep them functioning properly.`,
         `For example, your filter needs to be cleaned periodically to prevent clogs and maintain good water quality.`,
         `Don't forget to check on your filter once a week, just to make sure it's in good shape!`
-    ]
+    ],
+    30: [
+        'You have made it to the end of the demo! Congratulations and thank you for playing!',
+        'Don\'t forget to fill in the post-demo questionnaire provided by the students. Your input helps more than you know!',
+        'It was a joy to help you through this little aquaponics journey. Take care!'
+    ] 
 };
 
 let activeGillMessages = [];
