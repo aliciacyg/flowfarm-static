@@ -220,8 +220,7 @@ const gameState = {
             size: 18,
             age: 150,
             healthPercent: 70,
-            healthLabel: 'Stressed - pH too low',
-            healthColor: '#ff9800'
+            healthLabel: '',
         }
     ],
     inventory: {
@@ -450,7 +449,10 @@ const crisisEventsByDay = {
                     days: 4,
                     effects: { waterStats: { ammonia: -0.05 } }
                 },
-                gillMessage: ``
+                gillMessage: ['Smart thinking. Ammmonia is produced for fish waste and uneaten food. By not feeding, you\'re preventing further ammonia buildup.',
+                    'Fish can handle a few days of fasting. The bacteria in your system will eventually transform the ammonia into nitrates, which the plants will consume.',
+                    'The fish will stay stressed while the ammonia levels are up, but things will settle down over the next few days.'
+                ]
             }
         ]
     },
@@ -461,7 +463,7 @@ const crisisEventsByDay = {
             {
                 id: 'manual-aeration-choice',
                 label: 'Use Manual Aeration (- $30)',
-                description: 'Use a battery-powered aerator to increase oxygen levels temporarily.',
+                description: 'Add a second battery-powered air pump to increase oxygen levels temporarily.',
                 cost: 30,
                 immediate: {},
                 delayed: {},
@@ -1476,6 +1478,8 @@ function renderFish() {
 
     fishListEl.innerHTML = '';
     gameState.fish.forEach((fish) => {
+        updateFishHealthLabel(fish);
+
         const item = document.createElement('div');
         item.className = 'fish-item';
 
@@ -1675,7 +1679,6 @@ function updateFish(key, updates) {
     if (!fish) {
         return null;
     }
-
     Object.assign(fish, updates);
     renderFish();
     return fish;
@@ -1758,7 +1761,7 @@ function renderCrisisOptions(options) {
 function updateFishHealthLabel(fish) {
     if (fish.healthPercent >= 80) {
         fish.healthLabel = 'Healthy';
-        fish.healthColor = undefined;
+        fish.healthColor = '#4caf50';
     } else if (fish.healthPercent >= 50) {
         fish.healthLabel = 'Stressed';
         fish.healthColor = '#ff9800';
@@ -1991,6 +1994,7 @@ if (requestCompletePopup) {
         }
     });
 }
+
 
 updateDayDisplay();
 updateBalanceDisplay();
