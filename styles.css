@@ -283,6 +283,16 @@ button {
     border-radius: 5px;
 }
 
+.plant-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.plant-content {
+    flex: 1;
+}
+
 .fish-item h4,
 .plant-item h4 {
     font-size: 14px;
@@ -293,6 +303,27 @@ button {
 .plant-info {
     font-size: 12px;
     line-height: 1.6;
+}
+
+.plant-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.plant-harvest-btn {
+    padding: 6px 12px;
+    border: 2px solid #2e7d32;
+    background: #4caf50;
+    color: #fff;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.plant-harvest-btn:hover {
+    background: #43a047;
 }
 
 .health-bar-small {

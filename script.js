@@ -352,6 +352,16 @@ const gameState = {
     activeCommunityRequest: null
 };
 
+// Create days-to-harvest standard. Written as a function so we can test stuff.
+gameState.plants.forEach((plant) => {
+    if (typeof plant.initialDaysToHarvest !== 'number') {
+        plant.initialDaysToHarvest = plant.daysToHarvest;
+    }
+    if (!plant.harvestItemKey) {
+        plant.harvestItemKey = `${plant.key}-harvest`;
+    }
+});
+
 // Add new crisis events keyed by day number.
 const crisisEventsByDay = {
     5: {
@@ -1570,6 +1580,9 @@ function renderPlants() {
         const item = document.createElement('div');
         item.className = 'plant-item';
 
+        const content = document.createElement('div');
+        content.className = 'plant-content';
+
         const title = document.createElement('h4');
         title.textContent = `${plant.icon} ${plant.name}`;
 
@@ -1581,8 +1594,24 @@ function renderPlants() {
         info.innerHTML = `<strong>Quantity:</strong> ${plant.quantity} plants<br>
             <strong>Days until harvest:</strong> ${harvestText}`;
 
-        item.appendChild(title);
-        item.appendChild(info);
+        content.appendChild(title);
+        content.appendChild(info);
+        item.appendChild(content);
+        // Harvest button when ready to harvest
+        if (plant.daysToHarvest === 0) {
+            const actions = document.createElement('div');
+            actions.className = 'plant-actions';
+
+            const harvestBtn = document.createElement('button');
+            harvestBtn.className = 'plant-harvest-btn';
+            harvestBtn.type = 'button';
+            harvestBtn.textContent = 'Harvest';
+            harvestBtn.addEventListener('click', () => harvestPlant(plant.key));
+
+            actions.appendChild(harvestBtn);
+            item.appendChild(actions);
+        }
+
         plantsListEl.appendChild(item);
     });
 }
@@ -1763,6 +1792,44 @@ function renderHarvest() {
         container.appendChild(quantity);
         harvestListEl.appendChild(container);
     });
+}
+
+function harvestPlant(plantKey) {
+    if (!plantKey) {
+        return;
+    }
+
+    const plant = gameState.plants.find((entry) => entry.key === plantKey);
+    if (!plant || plant.daysToHarvest !== 0) {
+        return;
+    }
+
+    const harvestKey = plant.harvestItemKey || `${plant.key}-harvest`;
+    const harvestItem = getHarvestItem(harvestKey);
+    const harvestedQuantity = Math.max(0, Number(plant.quantity) || 0);
+
+    if (harvestedQuantity > 0) {
+        if (harvestItem) {
+            harvestItem.quantity = (harvestItem.quantity || 0) + harvestedQuantity;
+        } else {
+            gameState.inventory.harvest.push({
+                key: harvestKey,
+                icon: plant.icon || '🌱',
+                name: plant.name || 'Harvest',
+                quantity: harvestedQuantity
+            });
+        }
+    }
+
+    const resetValue = typeof plant.initialDaysToHarvest === 'number'
+        ? plant.initialDaysToHarvest
+        : plant.daysToHarvest;
+
+    plant.daysToHarvest = resetValue;
+
+    renderPlants();
+    renderHarvest();
+    updateRequestCompletionButtonState();
 }
 // -------------------------------------------------------------------------
 
