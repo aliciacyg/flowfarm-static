@@ -33,6 +33,7 @@ const requestCompleteMessageEl = document.getElementById('request-complete-messa
 const requestCompleteRewardsEl = document.getElementById('request-complete-rewards');
 const requestCompleteCloseButton = document.getElementById('request-complete-close-btn');
 const requestCompleteOkButton = document.getElementById('request-complete-ok-btn');
+const systemWarningButton = document.getElementById('system-warning-btn');
 
 const DEFAULT_STARTING_BALANCE = 500;
 
@@ -167,29 +168,22 @@ const gameState = {
             icon: '🥬',
             name: 'Lettuce',
             quantity: 4,
-            daysToHarvest: 8
+            daysToHarvest: 10
         },
         {
             key: 'tomato',
             icon: '🍅',
             name: 'Tomato',
             quantity: 3,
-            daysToHarvest: 21
-        },
-        {
-            key: 'basil',
-            icon: '🌿',
-            name: 'Basil',
-            quantity: 0,
-            daysToHarvest: 0
+            daysToHarvest: 20
         },
         {
             key: 'strawberry',
             icon: '🍓',
             name: 'Strawberry',
             quantity: 3,
-            daysToHarvest: 14
-        }
+            daysToHarvest: 15
+        },
     ],
     fish: [
         {
@@ -197,7 +191,7 @@ const gameState = {
             icon: '🐟',
             name: 'Goldfish #1',
             species: 'Common Goldfish',
-            size: 12,
+            size: 5,
             age: 120,
             healthPercent: 95,
             healthLabel: 'Healthy'
@@ -207,9 +201,19 @@ const gameState = {
             icon: '🐟',
             name: 'Goldfish #2',
             species: 'Common Goldfish',
-            size: 10,
+            size: 6,
             age: 90,
             healthPercent: 85,
+            healthLabel: 'Healthy'
+        },
+        {
+            key: 'goldfish-3',
+            icon: '🐟',
+            name: 'Goldfish #3',
+            species: 'Common Goldfish',
+            size: 4,
+            age: 90,
+            healthPercent: 90,
             healthLabel: 'Healthy'
         },
         {
@@ -217,9 +221,29 @@ const gameState = {
             icon: '🐠',
             name: 'Tilapia #1',
             species: 'Nile Tilapia',
-            size: 18,
-            age: 150,
-            healthPercent: 70,
+            size: 9,
+            age: 30,
+            healthPercent: 95,
+            healthLabel: '',
+        },
+        {
+            key: 'tilapia-2',
+            icon: '🐠',
+            name: 'Tilapia #2',
+            species: 'Nile Tilapia',
+            size: 7,
+            age: 35,
+            healthPercent: 95,
+            healthLabel: '',
+        },
+        {
+            key: 'tilapia-3',
+            icon: '🐠',
+            name: 'Tilapia #3',
+            species: 'Nile Tilapia',
+            size: 12,
+            age: 42,
+            healthPercent: 95,
             healthLabel: '',
         }
     ],
@@ -564,12 +588,12 @@ const crisisEventsByDay = {
                 description: 'Cures the fish, but might kill some plants.',
                 cost: 25,
                 immediate: {
-                    fish: {healthChange: 5},
-                    plants: {removePercent: 0.1}
+                    fish: { healthChange: 5 },
+                    plants: { removePercent: 0.1 }
                 },
                 delayed: {
                     days: 3,
-                    waterStats: {ammonia: 0.05}
+                    waterStats: { ammonia: 0.05 }
                 },
                 gillMessage: ['Well, that certainly will cure the ich! An increase in salt creates osmotic pressure that causes the parasites to burst and die.',
                     'The problem is, plants hate salt. These crops did not evolve to handle salty water, so even a little can damage the roots.',
@@ -581,10 +605,12 @@ const crisisEventsByDay = {
                 label: 'Raise Temperature Gradually to 82-86°F ',
                 description: 'Mr. Chen\'s gift is coming in handy! This will cure the fish, but stress the plants slightly.',
                 cost: 0,
-                immediate: {waterStats: {temperature: 2}
+                immediate: {
+                    waterStats: { temperature: 2 }
                 },
-                delayed: {days: 6,
-                    waterStats: {temperature: 2}
+                delayed: {
+                    days: 6,
+                    waterStats: { temperature: 2 }
                 },
                 gillMessage: ['Fun fact: ich parasites HATE warm water! Slowly increasing the temperature speeds up their life cycle, which just means they will die faster without getting the chance to reproduce.',
                     'The plants might grow slower because they prefer cooler water, but they will survive.',
@@ -650,7 +676,7 @@ const gillMessagesByDay = {
     1: [
         `Hey there! I'm Gill. I'm here to guide you through your aquaponics journey.`,
         `Aquaponics is all about teamwork: fish provide nutrients for plants, and plants clean the water for fish.`,
-        `For now, you're going to be in charge of this small deep-water culture tank. You can learn more about the details of these aquaponics terms in help tab in your own time. Right now, let's talk about running your system.`,
+        `For now, you're going to be in charge of this small deep-water culture tank. You can learn more about the details of these aquaponics terms in help tab in your own time (stretch feature). Right now, let's talk about running your system.`,
         `Most days, you don't have to do much. Just do these three things daily: feed the fish, check your water stats, and the health of your fish and plants.`,
         `Sometimes, unexpected things happen. Aquaponics systems can be sensitive and involve trial and error. Don't worry and believe in yourself!`,
         `That's all for now. I'll check in again tomorrow. Explore a bit, and have fun!`
@@ -669,7 +695,7 @@ const gillMessagesByDay = {
         'You have made it to the end of the demo! Congratulations and thank you for playing!',
         'Don\'t forget to fill in the post-demo questionnaire provided by the students. Your input helps more than you know!',
         'It was a joy to help you through this little aquaponics journey. Take care!'
-    ] 
+    ]
 };
 
 let activeGillMessages = [];
@@ -1465,6 +1491,34 @@ function getStatusClass(value, ranges) {
     return 'danger';
 }
 
+function isWaterStatOutOfRange(stat) {
+    if (!stat || !stat.ranges || !stat.ranges.safe) {
+        return false;
+    }
+    const [safeMin, safeMax] = stat.ranges.safe;
+    return typeof stat.value === 'number'
+        && (stat.value < safeMin || stat.value > safeMax);
+}
+
+function hasStressedFish() {
+    return gameState.fish.some((fish) => {
+        updateFishHealthLabel(fish);
+        return fish.healthLabel === 'Stressed' || fish.healthLabel === 'Critical';
+    });
+}
+
+function boolShowSysWarning() {
+    const waterWarning = gameState.waterStats.some(isWaterStatOutOfRange);
+    return waterWarning || hasStressedFish();
+}
+
+function updateWarningButtonState() {
+    if (!systemWarningButton) {
+        return;
+    }
+    systemWarningButton.hidden = !boolShowSysWarning();
+}
+
 function renderWaterStats() {
     if (!waterStatsContainer) {
         return;
@@ -1502,6 +1556,8 @@ function renderWaterStats() {
         row.appendChild(valueEl);
         waterStatsContainer.appendChild(row);
     });
+
+    updateWarningButtonState();
 }
 
 function renderPlants() {
@@ -1575,6 +1631,8 @@ function renderFish() {
         item.appendChild(healthText);
         fishListEl.appendChild(item);
     });
+
+    updateWarningButtonState();
 }
 
 function renderInventory() {
