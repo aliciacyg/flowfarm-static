@@ -47,6 +47,9 @@ const harvestIndicatorElements = {
 let fedToday = false;
 let feedFishButtonEl = null;
 let feedFishButtonResetTimer = null;
+let harvestButtonEl = null;
+let harvestButtonResetTimer = null;
+let harvestButtonTargetPlantKey = null;
 
 const DEFAULT_STARTING_BALANCE = 500;
 const FISH_FEED_CONSUMPTION_AMOUNT = 150;
@@ -1396,6 +1399,22 @@ function updateFeedIndicator() {
     }
 }
 
+function isPlantReadyForHarvest(plant) {
+    return Boolean(
+        plant
+        && typeof plant.daysToHarvest === 'number'
+        && plant.daysToHarvest === 0
+        && plant.quantity > 0
+    );
+}
+
+function getFirstHarvestReadyPlant() {
+    if (!gameState || !Array.isArray(gameState.plants)) {
+        return null;
+    }
+    return gameState.plants.find(isPlantReadyForHarvest) || null;
+}
+
 function updateHarvestIndicators() {
     Object.entries(harvestIndicatorElements).forEach(([plantKey, indicatorEl]) => {
         if (!indicatorEl) {
@@ -1403,12 +1422,7 @@ function updateHarvestIndicators() {
         }
 
         const plant = gameState.plants.find((entry) => entry.key === plantKey);
-        const isReadyToHarvest = plant
-            && typeof plant.daysToHarvest === 'number'
-            && plant.daysToHarvest === 0
-            && plant.quantity > 0;
-
-        indicatorEl.classList.toggle('active', Boolean(isReadyToHarvest));
+        indicatorEl.classList.toggle('active', isPlantReadyForHarvest(plant));
     });
 }
 // -------------------------------------------------------------------------
@@ -1699,6 +1713,15 @@ function renderPlants() {
     });
 
     updateHarvestIndicators();
+
+    if (harvestButtonTargetPlantKey) {
+        const targetPlant = gameState.plants.find((plant) => plant.key === harvestButtonTargetPlantKey);
+        if (!isPlantReadyForHarvest(targetPlant)) {
+            hideHarvestButton();
+        }
+    } else if (!getFirstHarvestReadyPlant()) {
+        hideHarvestButton();
+    }
 }
 
 function renderFish() {
@@ -1918,7 +1941,7 @@ function harvestPlant(plantKey) {
 }
 
 // -------------------------------------------------------------------------
-// Tank interactions (feeding)
+// Tank interactions :: Feeding
 //
 //
 function initializeTankFeedInteraction() {
@@ -1941,7 +1964,13 @@ function initializeTankFeedInteraction() {
 }
 
 function handleTankPlaceholderClick(event) {
-    if (!tankPlaceholderEl || !feedFishButtonEl || feedFishButtonEl.contains(event.target)) {
+    if (!tankPlaceholderEl) {
+        return;
+    }
+
+    const clickedOverlayButton = (feedFishButtonEl && feedFishButtonEl.contains(event.target))
+        || (harvestButtonEl && harvestButtonEl.contains(event.target));
+    if (clickedOverlayButton) {
         return;
     }
 
@@ -1950,12 +1979,23 @@ function handleTankPlaceholderClick(event) {
     const relativeY = event.clientY - rect.top;
     const isLeftHalf = relativeX <= rect.width / 2;
 
-    if (!isLeftHalf) {
-        hideFeedFishButton();
+    if (isLeftHalf) {
+        hideHarvestButton();
+        if (feedFishButtonEl) {
+            showFeedFishButton(relativeX, relativeY);
+        }
         return;
     }
 
-    showFeedFishButton(relativeX, relativeY);
+    hideFeedFishButton();
+
+    const readyPlant = getFirstHarvestReadyPlant();
+    if (!readyPlant) {
+        hideHarvestButton();
+        return;
+    }
+
+    showHarvestButton(relativeX, relativeY, readyPlant);
 }
 
 function handleClickOutsideTank(event) {
@@ -1963,6 +2003,7 @@ function handleClickOutsideTank(event) {
         return;
     }
     hideFeedFishButton();
+    hideHarvestButton();
 }
 
 function showFeedFishButton(relativeX, relativeY) {
@@ -2046,6 +2087,117 @@ function resetFeedFishButtonState() {
     feedFishButtonEl.textContent = 'Feed Fish';
     feedFishButtonEl.classList.remove('success', 'error');
 }
+
+// -------------------------------------------------------------------------
+// Tank interactions  :: Harvesting
+//
+//
+function initializeTankHarvestInteraction() {
+    if (!tankPlaceholderEl || harvestButtonEl) {
+        return;
+    }
+
+    harvestButtonEl = document.createElement('button');
+    harvestButtonEl.type = 'button';
+    harvestButtonEl.className = 'harvest-plant-button';
+    harvestButtonEl.textContent = 'Harvest Plant';
+    harvestButtonEl.setAttribute('aria-label', 'Harvest plant');
+    tankPlaceholderEl.appendChild(harvestButtonEl);
+
+    hideHarvestButton();
+
+    harvestButtonEl.addEventListener('click', handleHarvestButtonClick);
+}
+
+function showHarvestButton(relativeX, relativeY, plant) {
+    if (!tankPlaceholderEl || !harvestButtonEl || !plant) {
+        return;
+    }
+
+    resetHarvestButtonState();
+
+    const rect = tankPlaceholderEl.getBoundingClientRect();
+    const padding = 36;
+    const rightHalfStart = rect.width / 2;
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const minX = rightHalfStart + padding;
+    const x = clamp(Math.max(relativeX, minX), minX, rect.width - padding);
+    const y = clamp(relativeY, padding, rect.height - padding);
+
+    const plantName = plant.name || 'Plant';
+    harvestButtonTargetPlantKey = plant.key;
+    harvestButtonEl.textContent = `Harvest ${plantName}`;
+    harvestButtonEl.style.left = `${x}px`;
+    harvestButtonEl.style.top = `${y}px`;
+    harvestButtonEl.classList.add('visible');
+}
+
+function hideHarvestButton() {
+    if (!harvestButtonEl) {
+        return;
+    }
+
+    resetHarvestButtonState();
+    harvestButtonTargetPlantKey = null;
+    harvestButtonEl.classList.remove('visible', 'success', 'error');
+}
+
+function handleHarvestButtonClick(event) {
+    if (!harvestButtonEl) {
+        return;
+    }
+
+    event.stopPropagation();
+
+    const targetPlant = gameState.plants.find((plant) => plant.key === harvestButtonTargetPlantKey);
+
+    if (!isPlantReadyForHarvest(targetPlant)) {
+        harvestButtonEl.classList.add('error');
+        harvestButtonEl.textContent = 'Not Ready';
+        scheduleHarvestButtonReset(() => {
+            hideHarvestButton();
+        }, 1100);
+        return;
+    }
+
+    harvestButtonEl.disabled = true;
+    harvestButtonEl.classList.remove('error');
+
+    harvestButtonEl.classList.add('success');
+    harvestButtonEl.textContent = 'Harvested!';
+    scheduleHarvestButtonReset(() => {
+        harvestPlant(targetPlant.key);
+        hideHarvestButton();
+    }, 900);
+}
+
+function scheduleHarvestButtonReset(callback, delay) {
+    if (harvestButtonResetTimer) {
+        clearTimeout(harvestButtonResetTimer);
+    }
+    const timerFn = typeof window !== 'undefined' ? window.setTimeout : setTimeout;
+    harvestButtonResetTimer = timerFn(() => {
+        callback();
+        harvestButtonResetTimer = null;
+    }, delay);
+}
+
+function resetHarvestButtonState() {
+    if (!harvestButtonEl) {
+        return;
+    }
+
+    if (harvestButtonResetTimer) {
+        clearTimeout(harvestButtonResetTimer);
+        harvestButtonResetTimer = null;
+    }
+
+    harvestButtonEl.disabled = false;
+    harvestButtonEl.textContent = 'Harvest Plant';
+    harvestButtonEl.classList.remove('success', 'error');
+}
+
+// Fish feed handling functions
 
 function consumeFishFeed(amount) {
     if (!gameState || !gameState.inventory || !Array.isArray(gameState.inventory.consumables)) {
@@ -2403,6 +2555,7 @@ document.getElementById('inventory-popup').addEventListener('click', function (e
 //
 //
 initializeTankFeedInteraction();
+initializeTankHarvestInteraction();
 
 if (fastForwardButton) {
     fastForwardButton.addEventListener('click', advanceDay);

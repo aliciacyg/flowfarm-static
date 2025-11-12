@@ -208,6 +208,39 @@ button {
     color: #b71c1c;
 }
 
+.harvest-plant-button {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border: 2px solid #2e7d32;
+    border-radius: 12px;
+    background: #f8fff8;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+}
+
+.harvest-plant-button.visible {
+    display: flex;
+}
+
+.harvest-plant-button.success {
+    border-color: #1b5e20;
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.harvest-plant-button.error {
+    border-color: #c62828;
+    background: #ffebee;
+    color: #b71c1c;
+}
+
 .popup {
     display: none;
     position: fixed;
