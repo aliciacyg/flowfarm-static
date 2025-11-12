@@ -35,6 +35,8 @@ const requestCompleteCloseButton = document.getElementById('request-complete-clo
 const requestCompleteOkButton = document.getElementById('request-complete-ok-btn');
 const systemWarningButton = document.getElementById('system-warning-btn');
 const tankPlaceholderEl = document.querySelector('.tank-placeholder');
+const feedIndicator = document.getElementById('feed-indicator');
+let fedToday = false;
 let feedFishButtonEl = null;
 let feedFishButtonResetTimer = null;
 
@@ -405,7 +407,9 @@ const crisisEventsByDay = {
                 description: 'Quick fix. Will not last, and could stress the fish if overused.',
                 cost: 5,
                 immediate: { fish: { healthChange: -20 } },
-                delayed: {},
+                delayed: {
+                    fish: { healthChange: 2 },
+                    days: 4},
                 gillMessage: ['Aha! Baking soda! Cheap and effective base to quickly raise pH levels.',
                     'That\'s exactly the problem with it. It is quick, and that\'s really stressful for us fish.',
                     'We rely on stable pH for healthy breathing. This kind of stuff weakens our immune system and leaves us vulnerable to disease.',
@@ -1373,6 +1377,16 @@ function handleGillNext() {
 
     closeGill();
 }
+
+// On-Image indicators
+function updateFeedIndicator() {
+    if (fedToday) {
+        feedIndicator.classList.remove("active");
+    }
+    else {
+        feedIndicator.classList.add("active");
+    }
+}
 // -------------------------------------------------------------------------
 
 // Game day advancement
@@ -1397,6 +1411,8 @@ function advanceDay() {
         }
     });
 
+    fedToday = false;
+
     // Create transition effect
     createDayTransition();
 
@@ -1407,6 +1423,7 @@ function advanceDay() {
         renderFish();
         processActiveEffects();
         applyFilterMaintenanceRules();
+        updateFeedIndicator();
 
         // Show Gill's message 
         if (gillMessagesByDay[gameState.day]) {
@@ -1961,6 +1978,8 @@ function handleFeedFishButtonClick(event) {
     const success = consumeFishFeed(FISH_FEED_CONSUMPTION_AMOUNT);
 
     if (success) {
+        fedToday = true;
+        updateFeedIndicator();
         feedFishButtonEl.classList.add('success');
         feedFishButtonEl.textContent = 'Fed!';
         scheduleFeedButtonReset(() => {
@@ -2407,8 +2426,6 @@ applyFilterMaintenanceRules();
 if (gameState.day === 1) {
     openGill(1);
 }
-
-// TODO: If fish feed goes to zero, Gill refills it for free, and tells user about it
 
 if (typeof window !== 'undefined') {
     window.setBalance = setBalance;

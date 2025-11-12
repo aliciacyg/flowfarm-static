@@ -84,6 +84,32 @@ body {
     border-radius: 5px;
 }
 
+#feed-indicator {
+    position: absolute;
+    left: 17%;
+    top: 20%;
+    width: 25%;
+    height: 30%;
+    background: rgba(255, 0, 0, 0.35);
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#feed-indicator.active {
+    opacity: 1;
+    animation: pulsing 1.5s infinite ease-in-out;
+}
+
+@keyframes pulsing {
+    0%, 100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
 .button-group {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
