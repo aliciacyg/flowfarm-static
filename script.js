@@ -36,6 +36,14 @@ const requestCompleteOkButton = document.getElementById('request-complete-ok-btn
 const systemWarningButton = document.getElementById('system-warning-btn');
 const tankPlaceholderEl = document.querySelector('.tank-placeholder');
 const feedIndicator = document.getElementById('feed-indicator');
+const harvestLettuceIndicator = document.getElementById('harvest-lettuce-indicator');
+const harvestStrawberryIndicator = document.getElementById('harvest-strawberry-indicator');
+const harvestTomatoIndicator = document.getElementById('harvest-tomato-indicator');
+const harvestIndicatorElements = {
+    lettuce: harvestLettuceIndicator,
+    strawberry: harvestStrawberryIndicator,
+    tomato: harvestTomatoIndicator
+};
 let fedToday = false;
 let feedFishButtonEl = null;
 let feedFishButtonResetTimer = null;
@@ -1387,6 +1395,22 @@ function updateFeedIndicator() {
         feedIndicator.classList.add("active");
     }
 }
+
+function updateHarvestIndicators() {
+    Object.entries(harvestIndicatorElements).forEach(([plantKey, indicatorEl]) => {
+        if (!indicatorEl) {
+            return;
+        }
+
+        const plant = gameState.plants.find((entry) => entry.key === plantKey);
+        const isReadyToHarvest = plant
+            && typeof plant.daysToHarvest === 'number'
+            && plant.daysToHarvest === 0
+            && plant.quantity > 0;
+
+        indicatorEl.classList.toggle('active', Boolean(isReadyToHarvest));
+    });
+}
 // -------------------------------------------------------------------------
 
 // Game day advancement
@@ -1673,6 +1697,8 @@ function renderPlants() {
 
         plantsListEl.appendChild(item);
     });
+
+    updateHarvestIndicators();
 }
 
 function renderFish() {

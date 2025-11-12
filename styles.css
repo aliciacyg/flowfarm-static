@@ -101,6 +101,42 @@ body {
     animation: pulsing 1.5s infinite ease-in-out;
 }
 
+.harvest-indicator {
+    position: absolute;
+    background: rgba(76, 175, 80, 0.35);
+    border: 2px solid rgba(56, 142, 60, 0.7);
+    border-radius: 999px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.harvest-indicator.active {
+    opacity: 1;
+    animation: pulsing 1.5s infinite ease-in-out;
+}
+
+#harvest-lettuce-indicator {
+    left: 50%;
+    top: 40%;
+    width: 10%;
+    height: 22%;
+}
+
+#harvest-strawberry-indicator {
+    left: 61%;
+    top: 50%;
+    width: 20%;
+    height: 10%;
+}
+
+#harvest-tomato-indicator {
+    left: 60%;
+    top: 42%;
+    width: 20%;
+    height: 10%;
+}
+
 @keyframes pulsing {
     0%, 100% {
         opacity: 0.4;
