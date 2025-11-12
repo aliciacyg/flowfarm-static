@@ -664,7 +664,7 @@ const crisisEventsByDay = {
                 immediate: {},
                 delayed: {},
                 gillMessage: ['Ah ladybugs! I think you picked the best choice here. This will singlehandedly anhiliate those little creatures. Ladybugs are great hunters, and they always come hungry.',
-                    'They will help preevnt future infestations too, so great choice!'
+                    'They will help prevent future infestations too, so great choice!'
                 ]
             },
             {
@@ -1998,7 +1998,7 @@ function resetFeedFishButtonState() {
     }
 
     feedFishButtonEl.disabled = false;
-    feedFishButtonEl.textContent = 'feed fish';
+    feedFishButtonEl.textContent = 'Feed Fish';
     feedFishButtonEl.classList.remove('success', 'error');
 }
 
