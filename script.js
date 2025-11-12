@@ -420,7 +420,8 @@ const crisisEventsByDay = {
                 immediate: { fish: { healthChange: -20 } },
                 delayed: {
                     fish: { healthChange: 4 },
-                    days: 5},
+                    days: 5
+                },
                 gillMessage: ['Aha! Baking soda! Cheap and effective base to quickly raise pH levels.',
                     'That\'s exactly the problem with it. It is quick, and that\'s really stressful for us fish.',
                     'We rely on stable pH for healthy breathing. This kind of stuff weakens our immune system and leaves us vulnerable to disease.',
@@ -710,10 +711,12 @@ const crisisEventsByDay = {
 const gillMessagesByDay = {
     1: [
         `Hey there! I'm Gill. I'm here to guide you through your aquaponics journey.`,
+        `Aquaponics is a form of sustainable agriculture that allows you to grow food. You get to grow fruits and vegetables, while also farming fish.`,
         `Aquaponics is all about teamwork: fish provide nutrients for plants, and plants clean the water for fish.`,
         `For now, you're going to be in charge of this small deep-water culture tank. You can learn more about the details of these aquaponics terms in the Glossary tab in your own time. Right now, let's talk about running your system.`,
         `Most days, you don't have to do much. Just do these three things daily: feed the fish, check your water stats, and check the health of your fish and plants.`,
         `To feed the fish, just click on the tank. When plants are ready to harvest, an indicator will show up that you can click on. Everything else is in the menus.`,
+        `When you're done with your tasks for the day, hit the yellow button on the bottom right to advance to the next day.`,
         `Sometimes, unexpected things happen. Aquaponics systems can be sensitive and involve trial and error. Don't worry and believe in yourself!`,
         `That's all for now. I'll check in again tomorrow. Explore a bit, and have fun!`
     ],
