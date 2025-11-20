@@ -12,17 +12,25 @@
   <div class="screen">
     <!-- Header -->
     <div class="header">
-      <div class="points">
-        <span class="currency" id="balance-display">💰 $ <span id="balance-amount">500</span></span>
+      <div class="header-left">
+        <div class="points">
+          <span class="currency" id="balance-display">💰 $ <span id="balance-amount">500</span></span>
+        </div>
+        <button class="header-btn" id="active-request-btn" onclick="openActiveRequest()">📌 Active Request</button>
       </div>
-      <div class="date" id="current-date">
-        Day 1
+      <div class="header-center">
+        <div class="date" id="current-date">
+          📅 Day 1
+        </div>
       </div>
-      <div class="header-buttons">
+      <div class="header-right">
         <button class="header-btn warning-btn" id="system-warning-btn" onclick="openStats()" hidden>
           ⚠️ Check System
         </button>
-        <button class="header-btn" id="active-request-btn" onclick="openActiveRequest()">📌 Active Request</button>
+        <!-- +1 day -->
+        <button class="fast-forward" id="fast-forward-btn">
+          ⏩ +1 Day ☀️
+        </button>
       </div>
     </div>
 
@@ -41,7 +49,7 @@
         📊 Stats
       </button>
       <button onclick="openInventory()">
-        🎒 Inventory
+        🧰 Inventory
       </button>
       <button onclick="openCommunityBoard()">
         📋 Community
@@ -53,11 +61,6 @@
         🏪 Market
       </button>
     </div>
-    <br><br><br><br>
-    <!-- +1 day -->
-    <button class="fast-forward" id="fast-forward-btn">
-      ⏩ +1 Day
-    </button>
   </div>
 
   <!-- Stats Popup Dialog -->
@@ -135,7 +138,7 @@
         </div>
 
         <div class="detail-section">
-          <h3>📦 Requirements</h3>
+          <h3>📜 Requirements</h3>
           <div class="requirements-box">
             <ul id="request-detail-requirements"></ul>
           </div>
@@ -177,14 +180,14 @@
   <div id="inventory-popup" class="popup">
     <div class="popup-container">
       <div class="popup-header">
-        <h2>🎒 Inventory</h2>
+        <h2>🧰 Inventory</h2>
         <button class="close-btn" onclick="closeInventory()">✕ Close</button>
       </div>
 
       <!-- Tabs -->
       <div class="tabs">
         <button class="tab active" onclick="switchInventoryTab('consumables')">📦 Supplies</button>
-        <button class="tab" onclick="switchInventoryTab('equipment')">⚙️ Equipment</button>
+        <button class="tab" onclick="switchInventoryTab('equipment')">🛠️ Equipment</button>
         <button class="tab" onclick="switchInventoryTab('harvest')">🌾 Harvest</button>
       </div>
 

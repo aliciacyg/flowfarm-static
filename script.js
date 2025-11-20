@@ -274,7 +274,7 @@ const gameState = {
         consumables: [
             {
                 key: 'fish-feed',
-                icon: '🫘',
+                icon: '🪱',
                 name: 'Fish Feed',
                 quantity: 250,
                 unit: 'g',
@@ -282,7 +282,7 @@ const gameState = {
             },
             {
                 key: 'calcium-carbonate',
-                icon: '🧪',
+                icon: '⚪',
                 name: 'Calcium Carbonate',
                 quantity: 100,
                 unit: 'g',
@@ -290,7 +290,7 @@ const gameState = {
             },
             {
                 key: 'phosphoric-acid',
-                icon: '🧪',
+                icon: '⚗️',
                 name: 'Phosphoric Acid',
                 quantity: 100,
                 unit: 'mL',
@@ -306,7 +306,7 @@ const gameState = {
             },
             {
                 key: 'aquarium-salt',
-                icon: '🐟',
+                icon: '🧂',
                 name: 'Aquarium Salt',
                 quantity: 1,
                 unit: 'kg',
@@ -314,7 +314,7 @@ const gameState = {
             },
             {
                 key: 'iron-supplement',
-                icon: '🌱',
+                icon: '🪨',
                 name: 'Iron Supplement',
                 quantity: 200,
                 unit: 'mL',
@@ -331,14 +331,14 @@ const gameState = {
             },
             {
                 key: 'water-pump',
-                icon: '🔄',
+                icon: '⛲',
                 name: 'Water Pump',
                 status: { label: 'Functioning', type: 'functioning', prefix: '✓' },
                 description: 'Circulates water from fish tank to plant beds'
             },
             {
                 key: 'filter',
-                icon: '🧹',
+                icon: '🪟',
                 name: 'Filter',
                 status: { label: 'Needs Cleaning', type: 'needs-repair', prefix: '⚠' },
                 description: 'Removes solid waste particles from water'
