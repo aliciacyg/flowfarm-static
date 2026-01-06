@@ -1,4 +1,4 @@
-# 🍽️ FlowFarm Static Prototype
+# 🐟 FlowFarm Static Prototype
 
 **FlowFarm** is an educational aquaponics simulation game where you manage a small deep-water culture aquaponics system. Balance water chemistry, care for fish and plants, complete community requests, and learn about sustainable food production. Try the game [here!](https://aliciacyg.github.io/flowfarm-static/)
 
